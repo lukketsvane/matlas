@@ -42,27 +42,22 @@ export default function MaterialPage({ params }) {
     }
   }
 
+  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
   if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
   if (!material) return <div className="container mx-auto px-4 py-8">Material not found</div>;
+
+  const getImageFilename = (url) => {
+    if (!url) return '';
+    const parts = url.split('/');
+    return parts[parts.length - 1];
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <h1 className="text-4xl font-bold mb-4">{material.name}</h1>
-          {material.header_image && (
-            <div className="mb-6">
-              <Image 
-                src={material.header_image}
-                alt={material.name}
-                width={800}
-                height={400}
-                layout="responsive"
-                objectFit="cover"
-                className="rounded-lg"
-              />
-            </div>
-          )}
-          <p className="text-lg mb-6">{material.description}</p>
+          <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: material.description }} />
           
           <Tabs defaultValue="properties">
             <TabsList>
@@ -132,6 +127,23 @@ export default function MaterialPage({ params }) {
         </div>
         
         <div>
+          {material.header_image && (
+            <Card className="mb-6">
+              <CardContent className="p-0">
+                <Image 
+                  src={material.header_image}
+                  alt={material.name}
+                  width={400}
+                  height={300}
+                  layout="responsive"
+                  objectFit="cover"
+                  className="rounded-t-lg"
+                />
+                <p className="text-xs text-gray-500 p-2">{getImageFilename(material.header_image)}</p>
+              </CardContent>
+            </Card>
+          )}
+          
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Related Materials</CardTitle>
