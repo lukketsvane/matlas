@@ -1,5 +1,5 @@
 matlas                                            
-├─ matlas-wiki                                 
+├─ materials-wiki                                 
 │  ├─ app                                         
 │  │  ├─ api                                      
 │  │  │  ├─ materials                             

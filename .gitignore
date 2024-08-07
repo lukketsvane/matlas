@@ -2,4 +2,4 @@
 .env
 *.env
 node_modules/
-materials-wiki/node_modules/
+matlas-wiki/node_modules/
