@@ -1,0 +1,846 @@
+/./app/api/search/route.js
+import { NextResponse } from 'next/server';
+import { supabase } from '../../../lib/db';
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get('query');
+  
+  if (!query) {
+    return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
+  }
+
+  const { data, error } = await supabase
+    .from('materials')
+    .select('*')
+    .ilike('name', `%${query}%`)
+    .limit(10);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}
+
+/./app/api/insert-material.js
+import { supabase } from '../../lib/db';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  const materialData = {
+    name: 'Titanium Alloy',
+    description: 'A strong and lightweight metal',
+    properties: {
+      "Density": "4.5 g/cm³",
+      "Melting Point": "1,668°C",
+      "Tensile Strength": "900 MPa",
+      "Hardness": "36 HRC",
+      "Thermal Conductivity": "21.9 W/m·K",
+      "Corrosion Resistance": "Excellent"
+    },
+    usage_examples: [
+      {
+        "title": "Aerospace",
+        "description": "Titanium alloys are widely used in aircraft and spacecraft due to their high strength-to-weight ratio and corrosion resistance."
+      },
+      {
+        "title": "Medical Implants",
+        "description": "Titanium alloys are biocompatible and are commonly used in medical implants such as hip and knee replacements, dental implants, and pacemaker cases."
+      },
+      {
+        "title": "Automotive",
+        "description": "Titanium alloys are used in high-performance automotive applications, such as engine components, suspension parts, and exhaust systems, due to their strength and low weight."
+      }
+    ],
+    edit_history: [
+      {
+        "date": "2024-06-15",
+        "editor": "John Doe",
+        "changes": "Updated tensile strength and hardness values."
+      },
+      {
+        "date": "2024-05-20",
+        "editor": "Jane Smith",
+        "changes": "Added information about medical implant applications."
+      },
+      {
+        "date": "2024-04-01",
+        "editor": "Bob Johnson",
+        "changes": "Initial creation of the material page."
+      }
+    ],
+    related_materials: [
+      {
+        "name": "Stainless Steel",
+        "description": "A corrosion-resistant alloy with a wide range of applications."
+      },
+      {
+        "name": "Aluminum Alloy",
+        "description": "A lightweight and versatile metal with excellent corrosion resistance."
+      },
+      {
+        "name": "Carbon Fiber",
+        "description": "A strong and lightweight composite material with numerous applications."
+      }
+    ]
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('materials')
+      .insert([materialData]);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'Material inserted successfully', data });
+  } catch (error) {
+    res.status(500).json({ message: 'Error inserting material', error: error.message });
+  }
+}
+
+/./app/materials/[id]/edit/page.js
+'use client';
+
+import { useParams } from 'next/navigation';
+import MaterialEditor from '@/components/MaterialEditor';
+
+export default function EditMaterialPage() {
+  const params = useParams();
+  const { id } = params;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <MaterialEditor id={id} />
+    </div>
+  );
+}
+
+/./app/materials/[id]/page.js
+import { supabase } from '../../../lib/db';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import ReactMarkdown from 'react-markdown';
+
+async function getMaterial(id) {
+  const { data, error } = await supabase
+    .from('materials')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw new Error('Failed to fetch material');
+  return data;
+}
+
+export const revalidate = 0; // This ensures the page is always up-to-date
+
+export default async function MaterialPage({ params }) {
+  const material = await getMaterial(params.id);
+
+  // Handle properties and other fields
+  const properties = material.properties || {};
+  const usage_examples = Array.isArray(material.usage_examples) 
+    ? material.usage_examples 
+    : JSON.parse(material.usage_examples || '[]');
+  const edit_history = Array.isArray(material.edit_history)
+    ? material.edit_history
+    : JSON.parse(material.edit_history || '[]');
+  const related_materials = Array.isArray(material.related_materials)
+    ? material.related_materials
+    : JSON.parse(material.related_materials || '[]');
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="grid gap-6">
+          <div>
+            <h1 className="text-3xl font-bold text-primary mb-2">{material.name}</h1>
+            {material.image_url && (
+              <div className="mb-4">
+                <Image 
+                  src={material.image_url} 
+                  alt={material.name} 
+                  width={300} 
+                  height={200} 
+                  className="rounded-md object-cover"
+                />
+              </div>
+            )}
+            <div className="text-muted-foreground text-lg">
+              <ReactMarkdown>{material.description}</ReactMarkdown>
+            </div>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Properties</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Property</TableHead>
+                    <TableHead>Value</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(properties).map(([key, value]) => (
+                    <TableRow key={key}>
+                      <TableCell className="font-medium">{key}</TableCell>
+                      <TableCell>{value}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Usage Examples</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {usage_examples.map((example, index) => (
+                  <div key={index} className="border-b border-border pb-4 last:border-b-0 last:pb-0">
+                    <h3 className="font-medium text-primary mb-2">{example.title}</h3>
+                    <ReactMarkdown className="text-muted-foreground">{example.description}</ReactMarkdown>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Related Materials</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {related_materials.map((related, index) => (
+                  <div key={index} className="border-b border-border pb-4 last:border-b-0 last:pb-0">
+                    <h3 className="font-medium text-primary mb-1">{related.name}</h3>
+                    <p className="text-muted-foreground mb-2">{related.description}</p>
+                    <Link href={`/materials/${related.id}`}>
+                      <Button size="sm" variant="outline">View</Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {edit_history.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Editor</TableHead>
+                      <TableHead>Changes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {edit_history.map((edit, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{new Date(edit.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{edit.editor}</TableCell>
+                        <TableCell>{edit.changes}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p>No edit history available.</p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2">
+                <Link href={`/materials/${material.id}/edit`}>
+                  <Button>Edit Material</Button>
+                </Link>
+                <Button variant="outline">Download Datasheet</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/./lib/supabaseClient.js
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Set up storage bucket
+const setupStorage = async () => {
+  const { data, error } = await supabase.storage.createBucket('materials', {
+    public: true
+  });
+  if (error && error.message !== 'Bucket already exists') {
+    console.error('Error creating storage bucket:', error);
+  } else if (!error) {
+    console.log('Storage bucket created successfully:', data);
+  }
+};
+
+setupStorage();
+
+/./app/materials/page.js
+// app/materials/page.js
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { supabase } from '../../lib/db';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Grid, List } from 'lucide-react';
+
+async function getMaterials() {
+  const { data, error } = await supabase
+    .from('materials')
+    .select('*')
+    .order('name', { ascending: true });
+  if (error) throw new Error('Failed to fetch materials');
+  return data;
+}
+
+export default function MaterialsPage() {
+  const [materials, setMaterials] = useState([]);
+  const [view, setView] = useState('table');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    async function fetchMaterials() {
+      try {
+        const materialsData = await getMaterials();
+        setMaterials(materialsData);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMaterials();
+
+    // Check for user session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
+  if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col mb-6">
+        <h1 className="text-3xl font-bold text-primary mb-4">Materials Library</h1>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setView('grid')} variant={view === 'grid' ? 'default' : 'outline'}>
+            <Grid className="mr-2 h-4 w-4" />
+            Grid
+          </Button>
+          <Button onClick={() => setView('table')} variant={view === 'table' ? 'default' : 'outline'}>
+            <List className="mr-2 h-4 w-4" />
+            Table
+          </Button>
+          {user && (
+            <Link href="/materials/new/edit">
+              <Button>Add New Material</Button>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {view === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {materials.map((material) => (
+            <Card key={material.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="text-xl">{material.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">{material.description}</p>
+                <Link href={`/materials/${material.id}`}>
+                  <Button variant="outline">View Details</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {materials.map((material) => (
+              <TableRow key={material.id}>
+                <TableCell className="font-medium">{material.name}</TableCell>
+                <TableCell>{material.description}</TableCell>
+                <TableCell>
+                  <Link href={`/materials/${material.id}`}>
+                    <Button size="sm" variant="outline">View Details</Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}
+
+/./app/profile/page.js
+// app/profile/page.js
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { supabase, uploadFileToSupabase } from '../../lib/db';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+export default function ProfilePage() {
+  const [user, setUser] = useState(null);
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [website, setWebsite] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [contributions, setContributions] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const router = useRouter();
+
+  const fetchUserProfile = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUser(user);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else if (data) {
+        setName(data.name || '');
+        setBio(data.bio || '');
+        setWebsite(data.website || '');
+        setAvatarUrl(data.avatar_url || '');
+      }
+    } else {
+      router.push('/auth');
+    }
+  }, [router]);
+
+  const fetchUserContributions = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data, error } = await supabase
+        .from('contributions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Error fetching contributions:', error);
+      } else {
+        setContributions(data);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserProfile();
+    fetchUserContributions();
+  }, [fetchUserProfile, fetchUserContributions]);
+
+  async function handleProfileUpdate(e) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        name,
+        bio,
+        website,
+        avatar_url: avatarUrl,
+        updated_at: new Date(),
+      });
+
+    if (error) {
+      setError('Failed to update profile. Please try again.');
+    } else {
+      setSuccess('Profile updated successfully!');
+      setIsEditing(false);
+    }
+  }
+
+  async function handleAvatarUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const publicUrl = await uploadFileToSupabase(file, 'avatars', user.id);
+      setAvatarUrl(publicUrl);
+      
+      // Update the profile with the new avatar URL
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setSuccess('Avatar updated successfully!');
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      setError('Failed to upload avatar. Please try again.');
+    }
+  }
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {success && (
+        <Alert className="mb-6">
+          <AlertTitle>Success</AlertTitle>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={avatarUrl} alt={name} />
+                  <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <Input 
+                  id="name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" value={user.email} disabled />
+              </div>
+              <div>
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea 
+                  id="bio" 
+                  value={bio} 
+                  onChange={(e) => setBio(e.target.value)}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div>
+                <Label htmlFor="website">Website</Label>
+                <Input 
+                  id="website" 
+                  value={website} 
+                  onChange={(e) => setWebsite(e.target.value)}
+                  disabled={!isEditing}
+                />
+              </div>
+              {isEditing ? (
+                <Button type="submit">Save Changes</Button>
+              ) : (
+                <Button type="button" onClick={() => setIsEditing(true)}>Edit Profile</Button>
+              )}
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Your Contributions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contributions.length > 0 ? (
+              <ul className="space-y-4">
+                {contributions.map((contribution) => (
+                  <li key={contribution.id} className="border-b pb-4 last:border-b-0">
+                    <h3 className="font-semibold">{contribution.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(contribution.created_at).toLocaleDateString()}
+                    </p>
+                    <p>{contribution.description}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>You haven&apos;t made any contributions yet.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/./app/layout.js
+// app/layout.js
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Manrope } from 'next/font/google';
+import { cn } from '@/lib/utils';
+import './globals.css';
+import { supabase } from '../lib/db';
+import { Button } from "@/components/ui/button";
+import { Menu } from 'lucide-react';
+
+const fontHeading = Manrope({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-heading',
+});
+
+const fontBody = Manrope({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-body',
+});
+
+export default function RootLayout({ children }) {
+  const [isDarkMode, setIsDarkMode] = useState(
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
+  const [user, setUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      setIsDarkMode(mediaQuery.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+
+    // Check for user session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setIsMenuOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  return (
+    <html lang="en" className={cn(fontHeading.variable, fontBody.variable, isDarkMode ? 'dark' : '')}>
+      <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
+        <header className="bg-card text-card-foreground p-4">
+          <nav className="container mx-auto flex justify-between items-center">
+            <Link href="/" className="text-2xl font-bold text-primary">
+              MatLas Wiki
+            </Link>
+            <div className="md:hidden">
+              <Button onClick={toggleMenu} variant="ghost">
+                <Menu />
+              </Button>
+            </div>
+            <ul className={`md:flex md:space-x-4 items-center ${isMenuOpen ? 'block' : 'hidden'} md:block absolute md:relative top-16 md:top-0 right-0 md:right-auto bg-card md:bg-transparent p-4 md:p-0 rounded shadow md:shadow-none`}>
+              <li><Link href="/" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Home</Link></li>
+              <li><Link href="/materials" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Materials Library</Link></li>
+              {user && (
+                <li><Link href="/materials/new/edit" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Add Material</Link></li>
+              )}
+              {user ? (
+                <>
+                  <li><Link href="/profile" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Profile</Link></li>
+                  <li><Button onClick={handleSignOut}>Sign Out</Button></li>
+                </>
+              ) : (
+                <li><Link href="/auth" onClick={() => setIsMenuOpen(false)}><Button>Sign In</Button></Link></li>
+              )}
+            </ul>
+          </nav>
+        </header>
+        <main className="flex-grow container mx-auto px-4 py-8">
+          {children}
+        </main>
+        <footer className="bg-card text-card-foreground p-4 mt-8">
+          <div className="container mx-auto text-center text-sm">
+            &copy; 2024 Materials Wiki. All rights reserved.
+          </div>
+        </footer>
+      </body>
+    </html>
+  );
+}
+
+/./app/page.js
+// app/page.js
+'use client';
+
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/db';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ChevronDown } from 'lucide-react';
+
+const categories = {
+  "Metal": ["Ferrous Metal", "Nonferrous Metal"],
+  "Polymer": ["Thermoplastic", "Thermoset"],
+  "Ceramic": ["Oxide", "Non-oxide"],
+  "Composite": ["Polymer Matrix Composite", "Metal Matrix Composite"],
+  "Other Engineering Material": ["Advanced Material"]
+};
+
+export default function HomePage() {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // Implement search functionality here
+    console.log('Searching for:', searchTerm);
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col items-center mb-12">
+        <Image
+          src="/matlas-logo.png"
+          alt="MatLas Wiki logo"
+          width={200}
+          height={200}
+          className="mb-8"
+        />
+        <h1 className="text-4xl font-bold text-primary mb-6">MatLas Wiki</h1>
+        <p className="text-xl mb-6">The Free Material Encyclopedia</p>
+        <form onSubmit={handleSearch} className="w-full max-w-md mb-8">
+          <div className="flex">
+            <Input
+              type="text"
+              placeholder="Search materials..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-grow"
+            />
+            <Button type="submit" className="ml-2">Search</Button>
+          </div>
+        </form>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+        {Object.entries(categories).map(([category, subcategories]) => (
+          <Card key={category} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-xl">{category}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-2">{subcategories.length} subcategories</p>
+              <Link href={`/materials?category=${encodeURIComponent(category)}`}>
+                <Button variant="outline" size="sm">Explore</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="text-center">
+        <Button variant="outline" className="text-primary">
+          Read MatLas Wiki in your language <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
