@@ -2,114 +2,107 @@ import anthropic
 import json
 import time
 import os
-import logging
+import re
 from dotenv import load_dotenv
-from supabase import create_client, Client
+from supabase import create_client
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Load environment variables
 load_dotenv()
-
-# Initialize Anthropic client
 client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
-
-# Initialize Supabase client
-supabase: Client = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
-
-def generate_content(prompt):
-    message = client.messages.create(
-        model="claude-3-5-sonnet-20240620",
-        max_tokens=2000,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return message.content[0].text
+supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
 
 def generate_material(name, category, subcategory):
-    prompt = f"""Generate a detailed material entry for {name} in the {category} category, {subcategory} subcategory. 
-    Include the following:
-    1. A brief description (2-3 sentences)
-    2. Properties in JSON format (include at least Density, Hardness, Melting Point, Tensile Strength, Corrosion Resistance, and Thermal Conductivity)
-    3. At least 3 usage examples, each with a title and description
-    4. An edit history with 3 entries, each containing date, editor name, and changes made
-    5. At least 3 related materials, each with a name and brief description
+    prompt = f"""Generate a detailed and creative material entry for {name} ({category}, {subcategory}). Include extensive information and be more expansive in your descriptions. Follow this format, but feel free to add more properties and usage examples as appropriate for the specific material:
 
-    Ensure the information is scientifically accurate and detailed. Format the output as a JSON object with keys: description, properties, usage_examples, edit_history, and related_materials."""
+    {{
+        "name": "{name}",
+        "description": "A comprehensive description of the material, including its key characteristics, composition, and notable features.",
+        "properties": {{
+            "Density": "Value in g/cm³",
+            "Hardness": "Value in appropriate scale (HRC, HB, etc.)",
+            "Melting Point": "Value in °C",
+            "Tensile Strength": "Value in MPa",
+            "Yield Strength": "Value in MPa",
+            "Elastic Modulus": "Value in GPa",
+            "Elongation": "Percentage",
+            "Thermal Conductivity": "Value in W/m·K",
+            "Electrical Resistivity": "Value in μΩ·cm",
+            "Specific Heat Capacity": "Value in J/kg·K",
+            "Corrosion Resistance": "Detailed description",
+            "Machinability": "Description or rating",
+            "Weldability": "Description or rating",
+            "Additional Property 1": "Value or description",
+            "Additional Property 2": "Value or description"
+        }},
+        "usage_examples": [
+            {{"title": "Example 1", "description": "Detailed description of usage in this field."}},
+            {{"title": "Example 2", "description": "Detailed description of usage in this field."}},
+            {{"title": "Example 3", "description": "Detailed description of usage in this field."}},
+            {{"title": "Example 4", "description": "Detailed description of usage in this field."}}
+        ],
+        "edit_history": [
+            {{"date": "2024-06-15", "editor": "AI Assistant", "changes": "Comprehensive update with expanded information."}}
+        ],
+        "related_materials": [
+            {{"name": "Related Material 1", "description": "Detailed comparison or relation to the main material."}},
+            {{"name": "Related Material 2", "description": "Detailed comparison or relation to the main material."}},
+            {{"name": "Related Material 3", "description": "Detailed comparison or relation to the main material."}}
+        ]
+    }}
 
-    content = generate_content(prompt)
-
-    try:
-        material_entry = json.loads(content)
-        return {
-            "name": name,
-            "description": material_entry['description'],
-            "properties": json.dumps(material_entry['properties']),
-            "usage_examples": json.dumps(material_entry['usage_examples']),
-            "edit_history": json.dumps(material_entry['edit_history']),
-            "related_materials": json.dumps(material_entry['related_materials'])
-        }
-    except json.JSONDecodeError:
-        logging.error(f"Error parsing JSON for {name}. Skipping.")
+    Ensure all information is accurate and relevant to {name}. Be creative and expansive in your descriptions while maintaining scientific accuracy.
+    """
+    
+    response = client.messages.create(model="claude-3-5-sonnet-20240620", max_tokens=3000, messages=[{"role": "user", "content": prompt}])
+    
+    if response and response.content and len(response.content) > 0:
+        text_block = response.content[0]
+        if hasattr(text_block, 'text'):
+            raw_text = text_block.text
+            json_match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+            if json_match:
+                json_text = json_match.group(0)
+                try:
+                    material = json.loads(json_text)
+                except json.JSONDecodeError as e:
+                    print(f"Failed to decode JSON for material: {name} with error: {e}")
+                    return None
+            else:
+                print(f"No JSON content found in response for material: {name}")
+                return None
+        else:
+            print(f"No text field in response content for material: {name}")
+            return None
+    else:
+        print(f"Empty or invalid response for material: {name}")
         return None
-
-def insert_or_update_supabase(table, data):
-    try:
-        # Check if the material already exists
-        existing = supabase.table(table).select("name").eq("name", data["name"]).execute()
-        if existing.data:
-            logging.info(f"Material {data['name']} already exists. Updating.")
-            response = supabase.table(table).update(data).eq("name", data["name"]).execute()
-        else:
-            logging.info(f"Inserting new material: {data['name']}")
-            response = supabase.table(table).insert(data).execute()
-        
-        if response.data:
-            logging.info(f"Successfully inserted/updated {data['name']} in {table}")
-            return True
-        else:
-            logging.warning(f"No data returned when inserting/updating {data['name']} in {table}")
-            return False
-    except Exception as e:
-        logging.error(f"Error inserting/updating {data['name']} in {table}: {str(e)}")
-        return False
+    
+    material.update({
+        "category": category,
+        "subcategory": subcategory,
+        "slug": name.lower().replace(' ', '-'),
+        "header_image": "",
+        "category_id": {"Metal": 1, "Polymer": 2, "Ceramic": 3, "Composite": 4, "Other Engineering Material": 5}[category]
+    })
+    return material
 
 def main():
-    with open('materials_to_generate.txt', 'r') as f:
-        categories = {}
-        current_category = ""
-        current_subcategory = ""
-        for line in f:
-            line = line.strip()
-            if line.startswith("Category:"):
-                current_category = line.split(":")[1].strip()
-                categories[current_category] = {}
-            elif line.startswith("Subcategory:"):
-                current_subcategory = line.split(":")[1].strip()
-                categories[current_category][current_subcategory] = []
-            elif line:
-                categories[current_category][current_subcategory].append(line)
-
-    for category, subcategories in categories.items():
-        for subcategory, materials in subcategories.items():
-            for material_name in materials:
-                logging.info(f"Generating material entry for: {material_name}")
-                material = generate_material(material_name, category, subcategory)
+    with open('materials.json', 'r') as f:
+        materials_data = json.load(f)
+    
+    for category, subcategories in materials_data.items():
+        for subcategory, names in subcategories.items():
+            for name in names:
+                material = generate_material(name, category, subcategory)
                 if material:
-                    inserted = insert_or_update_supabase('materials', material)
-                    if inserted:
-                        logging.info(f"Material {material_name} generated and inserted/updated successfully.")
-                    else:
-                        logging.info(f"Failed to insert/update material {material_name}.")
+                    # Use upsert with on_conflict parameter to replace existing entries
+                    result = supabase.table('materials').upsert(
+                        material,
+                        on_conflict='slug'  # Using 'slug' instead of 'name'
+                    ).execute()
+                    print(f"{'Updated' if result.data else 'Failed to update'} {name}")
                 else:
-                    logging.error(f"Failed to generate material entry for {material_name}.")
-                
-                # Add a delay to avoid rate limiting
+                    print(f"Failed to generate material for: {name}")
                 time.sleep(2)
-
-    logging.info("Generation complete for all materials.")
 
 if __name__ == "__main__":
     main()

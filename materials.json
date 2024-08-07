@@ -1,0 +1,84 @@
+{
+  "Metal": {
+    "Ferrous Metal": [
+      "AISI 4340 Steel",
+      "Duplex 2205 Stainless Steel",
+      "M2 High-Speed Tool Steel",
+      "AISI 1045 Carbon Steel",
+      "H13 Tool Steel",
+      "Maraging Steel 250"
+    ],
+    "Nonferrous Metal": [
+      "Aluminum 7075-T6",
+      "Inconel 718",
+      "Titanium Grade 5 (Ti-6Al-4V)",
+      "Copper-Beryllium Alloy",
+      "Magnesium AZ31B",
+      "Nickel 200"
+    ]
+  },
+  "Polymer": {
+    "Thermoplastic": [
+      "PEEK (Polyether Ether Ketone)",
+      "UHMWPE (Ultra-High-Molecular-Weight Polyethylene)",
+      "PPS (Polyphenylene Sulfide)",
+      "Nylon 6/6",
+      "Polycarbonate",
+      "PTFE (Polytetrafluoroethylene)"
+    ],
+    "Thermoset": [
+      "Epoxy Resin (Bisphenol A)",
+      "Phenolic Resin",
+      "Polyurethane Elastomer",
+      "Melamine Formaldehyde",
+      "Vinyl Ester Resin",
+      "Silicone Rubber"
+    ]
+  },
+  "Ceramic": {
+    "Oxide": [
+      "Alumina (Al2O3)",
+      "Yttria-Stabilized Zirconia (YSZ)",
+      "Magnesium Aluminate Spinel",
+      "Beryllium Oxide",
+      "Mullite",
+      "Titania (TiO2)"
+    ],
+    "Non-oxide": [
+      "Silicon Carbide (SiC)",
+      "Boron Nitride (BN)",
+      "Silicon Nitride (Si3N4)",
+      "Aluminum Nitride",
+      "Boron Carbide",
+      "Titanium Carbide"
+    ]
+  },
+  "Composite": {
+    "Polymer Matrix Composite": [
+      "Carbon Fiber Reinforced Polymer (CFRP)",
+      "Glass Fiber Reinforced Polymer (GFRP)",
+      "Kevlar/Epoxy Composite",
+      "Boron Fiber/Epoxy Composite",
+      "Natural Fiber Reinforced Polymer",
+      "Nanocomposite"
+    ],
+    "Metal Matrix Composite": [
+      "Aluminum-Silicon Carbide (Al-SiC)",
+      "Titanium-Boron Fiber Composite",
+      "Magnesium-Alumina Composite",
+      "Copper-Graphite Composite",
+      "Steel-Titanium Carbide Composite",
+      "Aluminum-Alumina Composite"
+    ]
+  },
+  "Other Engineering Material": {
+    "Advanced Material": [
+      "Aerogel",
+      "Graphene",
+      "Shape Memory Alloy (Nitinol)",
+      "Metallic Glass",
+      "Piezoelectric Ceramic",
+      "Quantum Dot"
+    ]
+  }
+}
