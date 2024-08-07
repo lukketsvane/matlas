@@ -162,7 +162,6 @@ export default function MaterialsPage() {
           </Label>
         </div>
       </div>
-      {loading && <div>Loading...</div>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
         view === 'grid' ? (

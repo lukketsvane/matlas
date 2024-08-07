@@ -100,7 +100,6 @@ export default function HomePage() {
       </div>
 
       <h2 className="text-2xl font-bold mb-4">Random Materials</h2>
-      {loading && <div>Loading random materials...</div>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
