@@ -1,4 +1,3 @@
-// app/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,7 +25,6 @@ export default function HomePage() {
       setError(null);
 
       try {
-        // Fetch random materials
         const { data: materialsData, error: materialsError } = await supabase
           .from('materials')
           .select('id, name, description, header_image, slug, category, subcategory')
@@ -35,14 +33,12 @@ export default function HomePage() {
         if (materialsError) throw new Error(materialsError.message);
         setRandomMaterials(materialsData);
 
-        // Fetch all materials to get categories and subcategories
         const { data: allMaterials, error: allMaterialsError } = await supabase
           .from('materials')
           .select('category, subcategory');
 
         if (allMaterialsError) throw new Error(allMaterialsError.message);
 
-        // Organize categories and subcategories
         const categoriesObj = allMaterials.reduce((acc, material) => {
           if (material.category) {
             if (!acc[material.category]) {
@@ -55,7 +51,6 @@ export default function HomePage() {
           return acc;
         }, {});
 
-        // Convert Sets to Arrays
         Object.keys(categoriesObj).forEach(category => {
           categoriesObj[category] = Array.from(categoriesObj[category]);
         });
@@ -108,52 +103,54 @@ export default function HomePage() {
       {loading && <div>Loading random materials...</div>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {randomMaterials.map((material) => (
-            <Card key={material.id} className="hover:shadow-lg transition-shadow flex flex-col h-full">
-              <div className="h-48 relative">
-                {material.header_image ? (
-                  <Image 
-                    src={material.header_image}
-                    alt={material.name}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-t-lg"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-                    <span className="text-gray-400">No image available</span>
-                  </div>
-                )}
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl">{material.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-muted-foreground mb-4">
-                  {material.description ? `${material.description.substring(0, 100)}...` : 'No description available.'}
-                </p>
-              </CardContent>
-              <CardContent className="pt-0">
-                <Link href={`/materials/${material.slug}`}>
-                  <Button variant="outline" size="sm" className="w-full">View Details</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+  {randomMaterials.map((material) => (
+    <Card key={material.id} className="hover:shadow-lg transition-shadow flex flex-col">
+      <div className="h-32 relative">
+        {material.header_image ? (
+          <Image 
+            src={material.header_image}
+            alt={material.name}
+            layout="fill"
+            objectFit="cover"
+            className="rounded-t-lg"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
+            <span className="text-gray-400">No image</span>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col flex-grow">
+        <CardHeader className="p-3">
+          <CardTitle className="text-lg">{material.name}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 pt-0 flex flex-col flex-grow">
+          <p className="text-sm text-muted-foreground mb-2 flex-grow">
+            {material.description ? `${material.description.substring(0, 60)}...` : 'No description available.'}
+          </p>
+          <Link href={`/materials/${material.slug}`} className="mt-auto">
+            <Button variant="outline" size="sm" className="w-full">View Details</Button>
+          </Link>
+        </CardContent>
+      </div>
+    </Card>
+  ))}
+</div>
       )}
 
       <h2 className="text-2xl font-bold mb-4">Material Categories</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
         {Object.entries(categories).map(([category, subcategories]) => (
           <Card key={category} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl">{category}</CardTitle>
+            <CardHeader className="p-3">
+              <CardTitle className="text-lg">{category}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-2">{subcategories.length} subcategories</p>
-              <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)}>Explore</Button>
+            <CardContent className="p-3 pt-0">
+              <p className="text-sm text-muted-foreground mb-2">{subcategories.length} subcategories</p>
+              <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)} className="w-full">
+                Explore
+              </Button>
             </CardContent>
           </Card>
         ))}
