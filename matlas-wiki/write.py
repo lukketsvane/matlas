@@ -1,14 +1,14 @@
 import os
 files_to_combine = [
-    "./app/api/search/route.js",
-    "./app/api/insert-material.js",
-    "./app/materials/[id]/edit/page.js",
-    "./app/materials/[id]/page.js",
-    "./lib/supabaseClient.js",
-    "./app/materials/page.js",
-    "./app/profile/page.js",
-    "./app/layout.js",
-    "./app/page.js"
+    "./matlas-wikiapp/api/search/route.js",
+    "./matlas-wikiapp/api/insert-material.js",
+    "./matlas-wikiapp/materials/[id]/edit/page.js",
+    "./matlas-wikiapp/materials/[id]/page.js",
+    "./matlas-wikilib/supabaseClient.js",
+    "./matlas-wikiapp/materials/page.js",
+    "./matlas-wikiapp/profile/page.js",
+    "./matlas-wikiapp/layout.js",
+    "./matlas-wikiapp/page.js"
 ]
 output_file = "combined_code.txt"
 with open(output_file, 'w') as outfile:
