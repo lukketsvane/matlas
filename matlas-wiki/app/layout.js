@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 import { cn } from '@/lib/utils';
@@ -77,7 +78,18 @@ export default function RootLayout({ children }) {
           <aside className={`bg-card text-card-foreground w-16 flex-shrink-0 ${isSidebarOpen ? '' : 'hidden'} md:flex flex-col justify-between`}>
             <div>
               <div className="p-4">
-                <Link href="/" className="text-2xl font-bold text-primary">MW</Link>
+                <Link href="/" className="block">
+                  <Image
+                    src="/logo-icon.svg"
+                    alt="MatLas Wiki Logo"
+                    width={32}
+                    height={32}
+                    className={cn(
+                      "transition-all duration-200",
+                      isDarkMode ? "filter invert" : ""
+                    )}
+                  />
+                </Link>
               </div>
               <nav className="mt-8 flex flex-col items-center space-y-4">
                 <NavLink href="/" icon={Home} tooltip="Home" />

@@ -61,7 +61,6 @@ export default function MaterialsPage() {
       if (error) throw error;
       setMaterials(data);
 
-      // Fetch categories and subcategories
       const categoriesObj = data.reduce((acc, material) => {
         if (material.category) {
           if (!acc[material.category]) {
@@ -109,6 +108,12 @@ export default function MaterialsPage() {
     });
     setCurrentPage(1);
     fetchMaterials();
+  };
+
+  const stripHtmlTags = (html) => {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
   };
 
   const paginatedMaterials = materials.slice(
@@ -223,7 +228,7 @@ export default function MaterialsPage() {
                     <CardTitle className="text-xl">{material.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-4">{material.description.substring(0, 100)}...</p>
+                    <p className="text-muted-foreground mb-4">{stripHtmlTags(material.description).substring(0, 100)}...</p>
                     <Link href={`/materials/${material.slug}`}>
                       <Button variant="outline">View Details</Button>
                     </Link>
@@ -247,7 +252,7 @@ export default function MaterialsPage() {
                   {paginatedMaterials.map((material) => (
                     <tr key={material.id} className="border-t">
                       <td className="p-2">{material.name}</td>
-                      <td className="p-2">{material.description.substring(0, 100)}...</td>
+                      <td className="p-2">{stripHtmlTags(material.description).substring(0, 100)}...</td>
                       <td className="p-2">{material.category}</td>
                       <td className="p-2">{material.subcategory}</td>
                       <td className="p-2">
