@@ -1,93 +1,116 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import Image from 'next/image';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, ThumbsUp, MessageSquare, FolderPlus } from 'lucide-react';
-import { useSession } from '@supabase/auth-helpers-react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSession } from '@supabase/auth-helpers-react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pagination } from "@/components/ui/pagination";
+import { Search, Filter, Grid, List } from 'lucide-react';
 
 export default function DiscoverPage() {
   const [materials, setMaterials] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('random');
+  const [categories, setCategories] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('all');
+  const [view, setView] = useState('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
   const [userProjects, setUserProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
-  const supabase = createClientComponentClient();
-  const session = useSession();
-  const router = useRouter();
 
-  const fetchMaterials = useCallback(async () => {
+  const itemsPerPage = 12;
+  const router = useRouter();
+  const session = useSession();
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    fetchMaterials();
+    if (session) {
+      fetchUserProjects();
+    }
+  }, [session]);
+
+  const fetchMaterials = async () => {
     setLoading(true);
     setError(null);
     try {
       let query = supabase.from('materials').select('*');
-      
+
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
       }
 
-      switch (activeTab) {
-        case 'hot': query = query.order('views', { ascending: false }); break;
-        case 'likes': query = query.order('likes', { ascending: false }); break;
-        case 'name': query = query.order('name', { ascending: true }); break;
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
       }
-      
-      const { data, error } = await query.limit(50);
+
+      if (selectedSubcategory !== 'all') {
+        query = query.eq('subcategory', selectedSubcategory);
+      }
+
+      const { data, error } = await query.order('name');
+
       if (error) throw error;
-      
-      if (activeTab === 'random') {
-        for (let i = data.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [data[i], data[j]] = [data[j], data[i]];
-        }
-      }
-      
       setMaterials(data);
+
+      const categoriesObj = data.reduce((acc, material) => {
+        if (material.category) {
+          if (!acc[material.category]) {
+            acc[material.category] = new Set();
+          }
+          if (material.subcategory) {
+            acc[material.category].add(material.subcategory);
+          }
+        }
+        return acc;
+      }, {});
+
+      Object.keys(categoriesObj).forEach(category => {
+        categoriesObj[category] = Array.from(categoriesObj[category]);
+      });
+
+      setCategories(categoriesObj);
     } catch (err) {
       console.error('Error fetching materials:', err);
-      setError('Failed to fetch materials: ' + err.message);
+      setError('Failed to fetch materials');
     } finally {
       setLoading(false);
     }
-  }, [supabase, activeTab, searchTerm]);
+  };
 
-  const fetchUserProjects = useCallback(async () => {
-    if (!session) return;
+  const fetchUserProjects = async () => {
     try {
       const { data, error } = await supabase
         .from('projects')
         .select('id, name')
         .eq('user_id', session.user.id);
+
       if (error) throw error;
       setUserProjects(data);
     } catch (error) {
       console.error('Error fetching user projects:', error);
     }
-  }, [supabase, session]);
-
-  useEffect(() => {
-    fetchMaterials();
-    if (session) fetchUserProjects();
-  }, [fetchMaterials, fetchUserProjects, session]);
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setCurrentPage(1);
     fetchMaterials();
   };
 
-  const handleAddToProject = (e, material) => {
-    e.stopPropagation();
+  const handleAddToProject = (material) => {
     setSelectedMaterial(material);
     setIsAddToProjectOpen(true);
   };
@@ -101,83 +124,118 @@ export default function DiscoverPage() {
           project_id: selectedProject, 
           material_id: selectedMaterial.id 
         });
+
       if (error) throw error;
-      alert('Material saved to project successfully!');
       setIsAddToProjectOpen(false);
+      // Optionally, show a success message
     } catch (error) {
       console.error('Error saving material to project:', error);
-      alert('Failed to save material to project');
+      // Optionally, show an error message
     }
   };
 
-  const handleCardClick = (slug) => router.push(`/materials/${slug}`);
+  const paginatedMaterials = materials.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-grow">
+      <h1 className="text-3xl font-bold mb-6">Discover Materials</h1>
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
+          <TabsList>
+            <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /> Grid</TabsTrigger>
+            <TabsTrigger value="list"><List className="mr-2 h-4 w-4" /> List</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+          <div className="relative flex-1">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input 
-              type="text" 
-              placeholder="Search materials..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              className="pl-10 pr-4" 
+            <Input
+              type="text"
+              placeholder="Search materials..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4"
             />
           </div>
           <Button type="submit">Search</Button>
         </form>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {Object.keys(categories).map((category) => (
+              <SelectItem key={category} value={category}>{category}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedCategory !== 'all' && (
+          <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Subcategory" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Subcategories</SelectItem>
+              {categories[selectedCategory]?.map((subcategory) => (
+                <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="random">Random</TabsTrigger>
-          <TabsTrigger value="hot">Hot</TabsTrigger>
-          <TabsTrigger value="likes">Most Liked</TabsTrigger>
-          <TabsTrigger value="name">A-Z</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {materials.map((material) => (
-            <Card key={material.id} className="hover:shadow-lg transition-shadow h-full flex flex-col cursor-pointer" onClick={() => handleCardClick(material.slug)}>
-              <CardContent className="p-0 flex flex-col h-full">
-                <div className="relative pt-[100%] bg-gray-200">
-                  {material.header_image ? (
-                    <Image 
-                      src={material.header_image} 
-                      alt={material.name} 
-                      layout="fill" 
-                      objectFit="cover" 
-                      className="rounded-t-lg" 
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-full h-full bg-black dark:bg-white opacity-10" />
-                    </div>
-                  )}
+      {error && <p className="text-red-500">{error}</p>}
+
+      {!loading && !error && (
+        <div className={view === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}>
+          {paginatedMaterials.map((material) => (
+            <Card key={material.id} className={view === 'grid' ? "hover:shadow-lg transition-shadow" : "flex items-center"}>
+              {view === 'grid' && material.header_image && (
+                <div className="h-48 relative">
+                  <Image
+                    src={material.header_image}
+                    alt={material.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-t-lg"
+                  />
                 </div>
-                <div className="p-2 flex flex-col flex-grow">
-                  <h3 className="font-semibold text-sm mb-1 truncate">{material.name}</h3>
-                  <p className="text-xs text-gray-500 mb-2 line-clamp-2 flex-grow">{material.description}</p>
-                  <div className="flex justify-between items-center text-xs text-gray-400 mt-auto">
-                    <div className="flex space-x-2">
-                      <span className="flex items-center"><ThumbsUp className="w-3 h-3 mr-1" />{material.likes || 0}</span>
-                      <span className="flex items-center"><MessageSquare className="w-3 h-3 mr-1" />{material.comments || 0}</span>
-                    </div>
+              )}
+              <div className={view === 'grid' ? "" : "flex-1"}>
+                <CardHeader>
+                  <CardTitle className={view === 'grid' ? "text-xl" : "text-lg"}>{material.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {material.description ? `${material.description.substring(0, 100)}...` : 'No description available.'}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <Link href={`/materials/${material.slug}`}>
+                      <Button variant="outline" size="sm">View Details</Button>
+                    </Link>
                     {session && (
-                      <Button variant="ghost" size="sm" onClick={(e) => handleAddToProject(e, material)}>
-                        <FolderPlus className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" onClick={() => handleAddToProject(material)}>
+                        Add to Project
                       </Button>
                     )}
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              </div>
             </Card>
           ))}
         </div>
       )}
+
+      <Pagination
+        className="mt-8"
+        currentPage={currentPage}
+        totalPages={Math.ceil(materials.length / itemsPerPage)}
+        onPageChange={setCurrentPage}
+      />
+
       <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
         <DialogContent>
           <DialogHeader>
@@ -193,7 +251,7 @@ export default function DiscoverPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={saveMaterialToProject} className="mt-4">Save to Project</Button>
+          <Button onClick={saveMaterialToProject}>Save to Project</Button>
         </DialogContent>
       </Dialog>
     </div>
