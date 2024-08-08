@@ -34,6 +34,9 @@ export default function DiscoverPage() {
   const session = useSession();
   const supabase = createClientComponentClient();
   const observerRef = useRef(null);
+  const scrollRef = useRef(null);
+  const lastScrollTop = useRef(0);
+  const scrollThreshold = 50;
 
   const fetchMaterials = useCallback(async (reset = false) => {
     if (reset) {
@@ -43,7 +46,9 @@ export default function DiscoverPage() {
     setLoading(true);
     setError(null);
     try {
-      let query = supabase.from('materials').select('*');
+      console.log('Fetching materials:', { page, reset, searchTerm, selectedCategory, selectedSubcategory });
+      
+      let query = supabase.from('materials').select('*', { count: 'exact' });
 
       if (searchTerm) {
         query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
@@ -57,14 +62,16 @@ export default function DiscoverPage() {
         query = query.eq('subcategory', selectedSubcategory);
       }
 
-      const { data, error } = await query
+      const { data, error, count } = await query
         .order('name')
         .range(page * itemsPerPage, (page + 1) * itemsPerPage - 1);
 
       if (error) throw error;
       
+      console.log('Fetched materials:', { dataLength: data.length, totalCount: count });
+
       setMaterials(prev => reset ? data : [...prev, ...data]);
-      setHasMore(data.length === itemsPerPage);
+      setHasMore(count > (page + 1) * itemsPerPage);
 
       if (reset) {
         const categoriesObj = data.reduce((acc, material) => {
@@ -87,7 +94,7 @@ export default function DiscoverPage() {
       }
     } catch (err) {
       console.error('Error fetching materials:', err);
-      setError('Failed to fetch materials');
+      setError('Failed to fetch materials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -104,20 +111,34 @@ export default function DiscoverPage() {
     const observer = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          setPage(prevPage => prevPage + 1);
+          const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          if (currentScrollTop > lastScrollTop.current + scrollThreshold) {
+            setPage(prevPage => prevPage + 1);
+          }
+          lastScrollTop.current = currentScrollTop <= 0 ? 0 : currentScrollTop;
         }
       },
       { threshold: 1 }
     );
 
+    const handleScroll = () => {
+      const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      if (currentScrollTop > lastScrollTop.current + scrollThreshold) {
+        lastScrollTop.current = currentScrollTop <= 0 ? 0 : currentScrollTop;
+      }
+    };
+
     if (observerRef.current) {
       observer.observe(observerRef.current);
     }
+
+    window.addEventListener('scroll', handleScroll);
 
     return () => {
       if (observerRef.current) {
         observer.unobserve(observerRef.current);
       }
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [hasMore, loading]);
 
@@ -165,7 +186,7 @@ export default function DiscoverPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8" ref={scrollRef}>
       <h1 className="text-3xl font-bold mb-6">Discover Materials</h1>
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
@@ -213,7 +234,14 @@ export default function DiscoverPage() {
         )}
       </div>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && (
+        <div className="text-red-500 mb-4">
+          {error}
+          <Button onClick={() => fetchMaterials(true)} className="ml-4">
+            Retry
+          </Button>
+        </div>
+      )}
 
       {view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -263,6 +291,10 @@ export default function DiscoverPage() {
 
       {loading && <p className="text-center mt-4">Loading materials...</p>}
       
+      {!loading && materials.length === 0 && (
+        <p className="text-center mt-4">No materials found. Try adjusting your search or filters.</p>
+      )}
+
       <div ref={observerRef} className="h-10 mt-4" />
 
       <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
