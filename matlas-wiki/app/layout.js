@@ -1,4 +1,3 @@
-// app/layout.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,19 +8,9 @@ import './globals.css';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
-import { Menu } from 'lucide-react';
+import { Menu, Home, Library, PlusCircle, User, LogOut, LogIn } from 'lucide-react';
 
-const fontHeading = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-heading',
-});
-
-const fontBody = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-body',
-});
+const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
 
 export default function RootLayout({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -35,13 +24,8 @@ export default function RootLayout({ children }) {
     const handleChange = () => setIsDarkMode(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
 
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
@@ -54,46 +38,42 @@ export default function RootLayout({ children }) {
     setIsMenuOpen(false);
   };
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const NavLink = ({ href, icon: Icon, onClick }) => (
+    <li>
+      <Link href={href} className="hover:text-primary-foreground block py-2 md:py-0" onClick={onClick}>
+        <Icon className="h-5 w-5" />
+      </Link>
+    </li>
+  );
 
   return (
-    <html lang="en" className={cn(fontHeading.variable, fontBody.variable, isDarkMode ? 'dark' : '')}>
+    <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
         <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
           <header className="bg-card text-card-foreground p-4">
             <nav className="container mx-auto flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold text-primary">
-                MatLas Wiki
-              </Link>
+              <Link href="/" className="text-2xl font-bold text-primary">MatLas Wiki</Link>
               <div className="md:hidden">
-                <Button onClick={toggleMenu} variant="ghost">
-                  <Menu />
-                </Button>
+                <Button onClick={() => setIsMenuOpen(!isMenuOpen)} variant="ghost"><Menu /></Button>
               </div>
               <ul className={`md:flex md:space-x-4 items-center ${isMenuOpen ? 'block' : 'hidden'} md:block absolute md:relative top-16 md:top-0 right-0 md:right-auto bg-card md:bg-transparent p-4 md:p-0 rounded shadow md:shadow-none`}>
-                <li><Link href="/" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Home</Link></li>
-                <li><Link href="/materials" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Materials Library</Link></li>
-                {user && (
-                  <li><Link href="/materials/new/edit" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Add Material</Link></li>
-                )}
+                <NavLink href="/" icon={Home} onClick={() => setIsMenuOpen(false)} />
+                <NavLink href="/materials" icon={Library} onClick={() => setIsMenuOpen(false)} />
+                {user && <NavLink href="/materials/new/edit" icon={PlusCircle} onClick={() => setIsMenuOpen(false)} />}
                 {user ? (
                   <>
-                    <li><Link href="/profile" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Profile</Link></li>
-                    <li><Button onClick={handleSignOut}>Sign Out</Button></li>
+                    <NavLink href="/profile" icon={User} onClick={() => setIsMenuOpen(false)} />
+                    <li><Button onClick={handleSignOut}><LogOut className="h-5 w-5" /></Button></li>
                   </>
                 ) : (
-                  <li><Link href="/auth" onClick={() => setIsMenuOpen(false)}><Button>Sign In</Button></Link></li>
+                  <li><Link href="/auth" onClick={() => setIsMenuOpen(false)}><Button><LogIn className="h-5 w-5" /></Button></Link></li>
                 )}
               </ul>
             </nav>
           </header>
-          <main className="flex-grow container mx-auto px-4 py-8">
-            {children}
-          </main>
+          <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
           <footer className="bg-card text-card-foreground p-4 mt-8">
-            <div className="container mx-auto text-center text-sm">
-              &copy; 2024 Materials Wiki. All rights reserved.
-            </div>
+            <div className="container mx-auto text-center text-sm">&copy; 2024 Materials Wiki. All rights reserved.</div>
           </footer>
         </body>
       </SessionContextProvider>

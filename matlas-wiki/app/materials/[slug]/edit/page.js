@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -19,16 +19,7 @@ import { generateSlug } from '@/lib/utils';
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false, loading: () => <p>Loading editor...</p> });
 import 'react-quill/dist/quill.snow.css';
 
-const INITIAL_MATERIAL = {
-  name: '',
-  description: '',
-  properties: {},
-  usage_examples: [],
-  edit_history: [],
-  related_materials: [],
-  header_image: null,
-  slug: ''
-};
+const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '' };
 
 export default function EditMaterialPage({ params }) {
   const router = useRouter();
@@ -42,40 +33,29 @@ export default function EditMaterialPage({ params }) {
   const [error, setError] = useState(null);
   const [isPreview, setIsPreview] = useState(false);
 
-  useEffect(() => {
-    if (slug !== 'new') fetchMaterial();
-  }, [slug]);
-
-  const fetchMaterial = async () => {
+  const fetchMaterial = useCallback(async () => {
+    if (slug === 'new') return;
     setLoading(true);
     const { data, error } = await supabase.from('materials').select('*').eq('slug', slug).single();
     if (error) setError('Failed to fetch material data');
     else setMaterial(data);
     setLoading(false);
-  };
+  }, [slug, supabase]);
+
+  useEffect(() => { fetchMaterial(); }, [fetchMaterial]);
 
   const handleSave = async () => {
-    if (!session) {
-      setError('You must be logged in to save materials');
-      return;
-    }
+    if (!session) { setError('You must be logged in to save materials'); return; }
     setLoading(true);
     setError(null);
     let updatedMaterial = { ...material, slug: generateSlug(material.name) };
     if (headerImageFile) {
       const { data, error } = await uploadHeaderImage(updatedMaterial.slug);
-      if (error) {
-        setError(`Failed to upload header image: ${error.message}`);
-        setLoading(false);
-        return;
-      }
+      if (error) { setError(`Failed to upload header image: ${error.message}`); setLoading(false); return; }
       updatedMaterial.header_image = data.publicUrl;
     }
     try {
-      const { data, error } = await supabase.from('materials')
-        .upsert(updatedMaterial)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('materials').upsert(updatedMaterial).select().single();
       if (error) throw error;
       router.push(`/materials/${data.slug}`);
     } catch (error) {
@@ -93,21 +73,9 @@ export default function EditMaterialPage({ params }) {
   };
 
   const handleChange = (field, value) => setMaterial(prev => ({ ...prev, [field]: value }));
-
-  const handleArrayChange = (field, index, value) => {
-    setMaterial(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? { ...item, ...value } : item)
-    }));
-  };
-
-  const addArrayItem = (field, item) => {
-    setMaterial(prev => ({ ...prev, [field]: [...prev[field], item] }));
-  };
-
-  const removeArrayItem = (field, index) => {
-    setMaterial(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
-  };
+  const handleArrayChange = (field, index, value) => setMaterial(prev => ({ ...prev, [field]: prev[field].map((item, i) => i === index ? { ...item, ...value } : item) }));
+  const addArrayItem = (field, item) => setMaterial(prev => ({ ...prev, [field]: [...prev[field], item] }));
+  const removeArrayItem = (field, index) => setMaterial(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
 
   if (loading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin" /></div>;
   if (!session) return <div className="text-center">Please log in to edit materials.</div>;
@@ -127,9 +95,7 @@ export default function EditMaterialPage({ params }) {
             <CardContent className="pt-6 space-y-4">
               <div>
                 <Label htmlFor="header-image">Header Image</Label>
-                {material.header_image && (
-                  <Image src={material.header_image} alt="Header" width={300} height={200} className="rounded-md object-cover mt-2" />
-                )}
+                {material.header_image && <Image src={material.header_image} alt="Header" width={300} height={200} className="rounded-md object-cover mt-2" />}
                 <Input id="header-image" type="file" onChange={(e) => setHeaderImageFile(e.target.files[0])} accept="image/*" className="mt-2" />
               </div>
               <div>
@@ -138,20 +104,13 @@ export default function EditMaterialPage({ params }) {
               </div>
               <div className="relative">
                 <Label htmlFor="description">Description</Label>
-                <Button
-                  onClick={() => setIsPreview(!isPreview)}
-                  className="absolute top-0 right-0 p-2 bg-transparent hover:bg-transparent"
-                >
+                <Button onClick={() => setIsPreview(!isPreview)} className="absolute top-0 right-0 p-2 bg-transparent hover:bg-transparent">
                   <Eye className="h-5 w-5 text-foreground" />
                 </Button>
                 {isPreview ? (
                   <div className="prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: material.description }} />
                 ) : (
-                  <ReactQuill
-                    value={material.description}
-                    onChange={(content) => handleChange('description', content)}
-                    className="h-[calc(100vh-400px)] mt-2"
-                  />
+                  <ReactQuill value={material.description} onChange={(content) => handleChange('description', content)} className="h-[calc(100vh-400px)] mt-2" />
                 )}
               </div>
             </CardContent>
@@ -171,19 +130,10 @@ export default function EditMaterialPage({ params }) {
                 <TableBody>
                   {Object.entries(material.properties || {}).map(([key, value], index) => (
                     <TableRow key={index}>
-                      <TableCell><Input value={key} onChange={(e) => {
-                        const newProperties = { ...material.properties };
-                        delete newProperties[key];
-                        newProperties[e.target.value] = value;
-                        handleChange('properties', newProperties);
-                      }} /></TableCell>
+                      <TableCell><Input value={key} onChange={(e) => { const newProperties = { ...material.properties }; delete newProperties[key]; newProperties[e.target.value] = value; handleChange('properties', newProperties); }} /></TableCell>
                       <TableCell><Input value={value} onChange={(e) => handleChange('properties', { ...material.properties, [key]: e.target.value })} /></TableCell>
                       <TableCell>
-                        <Button variant="destructive" size="icon" onClick={() => {
-                          const newProperties = { ...material.properties };
-                          delete newProperties[key];
-                          handleChange('properties', newProperties);
-                        }}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" onClick={() => { const newProperties = { ...material.properties }; delete newProperties[key]; handleChange('properties', newProperties); }}><Trash2 className="h-4 w-4" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -200,17 +150,8 @@ export default function EditMaterialPage({ params }) {
             <CardContent className="pt-6">
               {material.usage_examples && material.usage_examples.map((example, index) => (
                 <div key={index} className="mb-4">
-                  <Input
-                    value={example.title}
-                    onChange={(e) => handleArrayChange('usage_examples', index, { title: e.target.value })}
-                    placeholder="Title"
-                    className="mb-2"
-                  />
-                  <Textarea
-                    value={example.description}
-                    onChange={(e) => handleArrayChange('usage_examples', index, { description: e.target.value })}
-                    placeholder="Description"
-                  />
+                  <Input value={example.title} onChange={(e) => handleArrayChange('usage_examples', index, { title: e.target.value })} placeholder="Title" className="mb-2" />
+                  <Textarea value={example.description} onChange={(e) => handleArrayChange('usage_examples', index, { description: e.target.value })} placeholder="Description" />
                   <Button variant="destructive" size="sm" onClick={() => removeArrayItem('usage_examples', index)} className="mt-2">
                     <Trash2 className="mr-2 h-4 w-4" /> Remove
                   </Button>
@@ -243,11 +184,7 @@ export default function EditMaterialPage({ params }) {
                   ))}
                 </TableBody>
               </Table>
-              <Button onClick={() => addArrayItem('edit_history', {
-                date: new Date().toISOString(),
-                editor: session.user.email,
-                changes: 'Edited material'
-              })} className="mt-4">
+              <Button onClick={() => addArrayItem('edit_history', { date: new Date().toISOString(), editor: session.user.email, changes: 'Edited material' })} className="mt-4">
                 <Plus className="mr-2 h-4 w-4" /> Add Edit Record
               </Button>
             </CardContent>
@@ -258,17 +195,8 @@ export default function EditMaterialPage({ params }) {
             <CardContent className="pt-6">
               {material.related_materials && material.related_materials.map((related, index) => (
                 <div key={index} className="mb-4">
-                  <Input
-                    value={related.name}
-                    onChange={(e) => handleArrayChange('related_materials', index, { name: e.target.value })}
-                    placeholder="Material Name"
-                    className="mb-2"
-                  />
-                  <Textarea
-                    value={related.description}
-                    onChange={(e) => handleArrayChange('related_materials', index, { description: e.target.value })}
-                    placeholder="Description"
-                  />
+                  <Input value={related.name} onChange={(e) => handleArrayChange('related_materials', index, { name: e.target.value })} placeholder="Material Name" className="mb-2" />
+                  <Textarea value={related.description} onChange={(e) => handleArrayChange('related_materials', index, { description: e.target.value })} placeholder="Description" />
                   <Button variant="destructive" size="sm" onClick={() => removeArrayItem('related_materials', index)} className="mt-2">
                     <Trash2 className="mr-2 h-4 w-4" /> Remove
                   </Button>
