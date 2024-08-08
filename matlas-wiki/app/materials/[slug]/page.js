@@ -73,7 +73,10 @@ export default function MaterialPage({ params }) {
     try {
       const { error } = await supabase
         .from('project_materials')
-        .insert({ project_id: selectedProject, material_id: material.id });
+        .insert({ 
+          project_id: selectedProject, 
+          material_id: material.id 
+        });
 
       if (error) throw error;
       alert('Material saved to project successfully!');
@@ -276,4 +279,4 @@ export default function MaterialPage({ params }) {
       </div>
     </div>
   );
-}
+}	
