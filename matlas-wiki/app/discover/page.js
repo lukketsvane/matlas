@@ -94,7 +94,6 @@ export default function DiscoverPage() {
         </TabsList>
       </Tabs>
 
-      {loading && <p>Loading materials...</p>}
       {error && <div className="text-red-500 mb-4">Error: {error}</div>}
       
       {!loading && !error && (

@@ -7,8 +7,12 @@ import Link from 'next/link';
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, FolderPlus } from 'lucide-react';
 
 export default function MaterialPage({ params }) {
   const router = useRouter();
@@ -19,9 +23,17 @@ export default function MaterialPage({ params }) {
   const session = useSession();
   const supabase = useSupabaseClient();
 
+  const [userProjects, setUserProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
+
   useEffect(() => {
     fetchMaterial();
-  }, [slug]);
+    if (session) {
+      fetchUserProjects();
+    }
+  }, [slug, session]);
 
   async function fetchMaterial() {
     try {
@@ -42,6 +54,57 @@ export default function MaterialPage({ params }) {
     }
   }
 
+  async function fetchUserProjects() {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+      setUserProjects(data);
+    } catch (error) {
+      console.error('Error fetching user projects:', error);
+    }
+  }
+
+  async function saveMaterialToProject() {
+    if (!selectedProject) return;
+    try {
+      const { error } = await supabase
+        .from('project_materials')
+        .insert({ project_id: selectedProject, material_id: material.id });
+
+      if (error) throw error;
+      alert('Material saved to project successfully!');
+      setIsAddToProjectOpen(false);
+    } catch (error) {
+      console.error('Error saving material to project:', error);
+      alert('Failed to save material to project');
+    }
+  }
+
+  async function createNewProject() {
+    if (!newProjectName.trim()) return;
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([
+          { name: newProjectName, user_id: session.user.id }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      setUserProjects([...userProjects, data]);
+      setSelectedProject(data.id);
+      setNewProjectName('');
+    } catch (error) {
+      console.error('Error creating new project:', error);
+      alert('Failed to create new project');
+    }
+  }
+
   if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
   if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
   if (!material) return <div className="container mx-auto px-4 py-8">Material not found</div>;
@@ -56,7 +119,46 @@ export default function MaterialPage({ params }) {
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <h1 className="text-4xl font-bold mb-4">{material.name}</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-4xl font-bold">{material.name}</h1>
+            {session && (
+              <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    Add to Project
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add to Project</DialogTitle>
+                  </DialogHeader>
+                  <Select value={selectedProject} onValueChange={setSelectedProject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {userProjects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center mt-4">
+                    <Input
+                      placeholder="New Project Name"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      className="mr-2"
+                    />
+                    <Button onClick={createNewProject} size="sm">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button onClick={saveMaterialToProject} className="mt-4">Save to Project</Button>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
           <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: material.description }} />
           
           <Tabs defaultValue="properties">
