@@ -1,3 +1,113 @@
+matlas                                            
+├─ matlas-wiki                                 
+│  ├─ app                                         
+│  │  ├─ api                                      
+│  │  │  ├─ materials                             
+│  │  │  │  └─ route.js                           
+│  │  │  ├─ search                                
+│  │  │  │  └─ route.js                           
+│  │  │  └─ insert-material.js                    
+│  │  ├─ auth                                     
+│  │  │  └─ page.js                               
+│  │  ├─ materials                                
+│  │  │  ├─ [slug]                                
+│  │  │  │  ├─ edit                               
+│  │  │  │  │  └─ page.js                         
+│  │  │  │  └─ page.js                            
+│  │  │  └─ page.js                               
+│  │  ├─ profile                                  
+│  │  │  └─ page.js                               
+│  │  ├─ favicon.ico                              
+│  │  ├─ globals.css                              
+│  │  ├─ layout.js                                
+│  │  └─ page.js                                  
+│  ├─ components                                  
+│  │  ├─ ui                                       
+│  │  │  ├─ accordion.jsx                         
+│  │  │  ├─ alert-dialog.jsx                      
+│  │  │  ├─ alert.jsx                             
+│  │  │  ├─ aspect-ratio.jsx                      
+│  │  │  ├─ avatar.jsx                            
+│  │  │  ├─ badge.jsx                             
+│  │  │  ├─ breadcrumb.jsx                        
+│  │  │  ├─ button.jsx                            
+│  │  │  ├─ calendar.jsx                          
+│  │  │  ├─ card.jsx                              
+│  │  │  ├─ carousel.jsx                          
+│  │  │  ├─ chart.jsx                             
+│  │  │  ├─ checkbox.jsx                          
+│  │  │  ├─ collapsible.jsx                       
+│  │  │  ├─ command.jsx                           
+│  │  │  ├─ context-menu.jsx                      
+│  │  │  ├─ dialog.jsx                            
+│  │  │  ├─ drawer.jsx                            
+│  │  │  ├─ dropdown-menu.jsx                     
+│  │  │  ├─ form.jsx                              
+│  │  │  ├─ hover-card.jsx                        
+│  │  │  ├─ input-otp.jsx                         
+│  │  │  ├─ input.jsx                             
+│  │  │  ├─ label.jsx                             
+│  │  │  ├─ menubar.jsx                           
+│  │  │  ├─ navigation-menu.jsx                   
+│  │  │  ├─ pagination.jsx                        
+│  │  │  ├─ popover.jsx                           
+│  │  │  ├─ progress.jsx                          
+│  │  │  ├─ radio-group.jsx                       
+│  │  │  ├─ resizable.jsx                         
+│  │  │  ├─ scroll-area.jsx                       
+│  │  │  ├─ select.jsx                            
+│  │  │  ├─ separator.jsx                         
+│  │  │  ├─ sheet.jsx                             
+│  │  │  ├─ skeleton.jsx                          
+│  │  │  ├─ slider.jsx                            
+│  │  │  ├─ sonner.jsx                            
+│  │  │  ├─ switch.jsx                            
+│  │  │  ├─ table.jsx                             
+│  │  │  ├─ tabs.jsx                              
+│  │  │  ├─ textarea.jsx                          
+│  │  │  ├─ toast.jsx                             
+│  │  │  ├─ toaster.jsx                           
+│  │  │  ├─ toggle-group.jsx                      
+│  │  │  ├─ toggle.jsx                            
+│  │  │  ├─ tooltip.jsx                           
+│  │  │  └─ use-toast.js                          
+│  │  ├─ MarkdownEditor.js                        
+│  │  ├─ MaterialCard.js                          
+│  │  ├─ PropertyTable.js                         
+│  │  ├─ SearchBar.js                             
+│  │  └─ component.jsx                            
+│  ├─ lib                                         
+│  │  ├─ auth.js                                  
+│  │  ├─ db.js                                    
+│  │  ├─ imageUpload.js                           
+│  │  ├─ page.js                                  
+│  │  ├─ supabaseClient.js                        
+│  │  ├─ theme.js                                 
+│  │  └─ utils.js                                 
+│  ├─ public                                      
+│  │  ├─ matlas-logo.png                          
+│  │  ├─ next.svg                                 
+│  │  ├─ placeholder.svg                          
+│  │  └─ vercel.svg                               
+│  ├─ README.md                                   
+│  ├─ combined_code.txt                           
+│  ├─ components.json                             
+│  ├─ ee a compact version of the commit history  
+│  ├─ insert-initial-data.js                      
+│  ├─ jsconfig.json                               
+│  ├─ next.config.mjs                             
+│  ├─ package-lock.json                           
+│  ├─ package.json                                
+│  ├─ postcss.config.mjs                          
+│  ├─ t commit but keep the changes               
+│  ├─ tailwind.config.js                          
+│  └─ write.py                                    
+├─ Engineering_Materials_v3.txt                   
+├─ README.md                                      
+├─ gen.py                                         
+├─ materials_to_generate.txt                      
+└─ write.py                                       
+
 /./matlas-wiki/app/api/search/route.js
 import { NextResponse } from 'next/server';
 import { supabase } from '../../../lib/supabaseClient';
@@ -104,12 +214,236 @@ export default async function handler(req, res) {
 }
 
 /./matlas-wiki/app/materials/[slug]/edit/page.js
-"use client";
+'use client';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSession } from '@supabase/auth-helpers-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Plus, Trash2, Eye } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { generateSlug } from '@/lib/utils';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false, loading: () => <p>Loading editor...</p> });
+import 'react-quill/dist/quill.snow.css';
+
+const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '' };
+
+export default function EditMaterialPage({ params }) {
+  const router = useRouter();
+  const { slug } = params;
+  const session = useSession();
+  const supabase = createClientComponentClient();
+  const [material, setMaterial] = useState(INITIAL_MATERIAL);
+  const [activeTab, setActiveTab] = useState("basic-info");
+  const [headerImageFile, setHeaderImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isPreview, setIsPreview] = useState(false);
+
+  const fetchMaterial = useCallback(async () => {
+    if (slug === 'new') return;
+    setLoading(true);
+    const { data, error } = await supabase.from('materials').select('*').eq('slug', slug).single();
+    if (error) setError('Failed to fetch material data');
+    else setMaterial(data);
+    setLoading(false);
+  }, [slug, supabase]);
+
+  useEffect(() => { fetchMaterial(); }, [fetchMaterial]);
+
+  const handleSave = async () => {
+    if (!session) { setError('You must be logged in to save materials'); return; }
+    setLoading(true);
+    setError(null);
+    let updatedMaterial = { ...material, slug: generateSlug(material.name) };
+    if (headerImageFile) {
+      const { data, error } = await uploadHeaderImage(updatedMaterial.slug);
+      if (error) { setError(`Failed to upload header image: ${error.message}`); setLoading(false); return; }
+      updatedMaterial.header_image = data.publicUrl;
+    }
+    try {
+      const { data, error } = await supabase.from('materials').upsert(updatedMaterial).select().single();
+      if (error) throw error;
+      router.push(`/materials/${data.slug}`);
+    } catch (error) {
+      setError(`Failed to save material: ${error.message}`);
+    }
+    setLoading(false);
+  };
+
+  const uploadHeaderImage = async (materialSlug) => {
+    const fileExt = headerImageFile.name.split('.').pop();
+    const filePath = `${materialSlug}/${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage.from('Article-header').upload(filePath, headerImageFile);
+    if (error) throw error;
+    return supabase.storage.from('Article-header').getPublicUrl(filePath);
+  };
+
+  const handleChange = (field, value) => setMaterial(prev => ({ ...prev, [field]: value }));
+  const handleArrayChange = (field, index, value) => setMaterial(prev => ({ ...prev, [field]: prev[field].map((item, i) => i === index ? { ...item, ...value } : item) }));
+  const addArrayItem = (field, item) => setMaterial(prev => ({ ...prev, [field]: [...prev[field], item] }));
+  const removeArrayItem = (field, index) => setMaterial(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
+
+  if (loading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin" /></div>;
+  if (!session) return <div className="text-center">Please log in to edit materials.</div>;
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Editing: {material.name || "New Material"}</h1>
+      {error && <Alert variant="destructive" className="mb-4"><AlertDescription>{error}</AlertDescription></Alert>}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          {["Basic Info", "Properties", "Usage Examples", "Edit History", "Related Materials"].map((tab) => (
+            <TabsTrigger key={tab} value={tab.toLowerCase().replace(' ', '-')}>{tab}</TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="basic-info" className="mt-4">
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div>
+                <Label htmlFor="header-image">Header Image</Label>
+                {material.header_image && <Image src={material.header_image} alt="Header" width={300} height={200} className="rounded-md object-cover mt-2" />}
+                <Input id="header-image" type="file" onChange={(e) => setHeaderImageFile(e.target.files[0])} accept="image/*" className="mt-2" />
+              </div>
+              <div>
+                <Label htmlFor="name">Material Name</Label>
+                <Input id="name" value={material.name} onChange={(e) => handleChange('name', e.target.value)} />
+              </div>
+              <div className="relative">
+                <Label htmlFor="description">Description</Label>
+                <Button onClick={() => setIsPreview(!isPreview)} className="absolute top-0 right-0 p-2 bg-transparent hover:bg-transparent">
+                  <Eye className="h-5 w-5 text-foreground" />
+                </Button>
+                {isPreview ? (
+                  <div className="prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: material.description }} />
+                ) : (
+                  <ReactQuill value={material.description} onChange={(content) => handleChange('description', content)} className="h-[calc(100vh-400px)] mt-2" />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="properties" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Property</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(material.properties || {}).map(([key, value], index) => (
+                    <TableRow key={index}>
+                      <TableCell><Input value={key} onChange={(e) => { const newProperties = { ...material.properties }; delete newProperties[key]; newProperties[e.target.value] = value; handleChange('properties', newProperties); }} /></TableCell>
+                      <TableCell><Input value={value} onChange={(e) => handleChange('properties', { ...material.properties, [key]: e.target.value })} /></TableCell>
+                      <TableCell>
+                        <Button variant="destructive" size="icon" onClick={() => { const newProperties = { ...material.properties }; delete newProperties[key]; handleChange('properties', newProperties); }}><Trash2 className="h-4 w-4" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Button onClick={() => handleChange('properties', { ...material.properties, '': '' })} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" /> Add Property
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="usage-examples" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              {material.usage_examples && material.usage_examples.map((example, index) => (
+                <div key={index} className="mb-4">
+                  <Input value={example.title} onChange={(e) => handleArrayChange('usage_examples', index, { title: e.target.value })} placeholder="Title" className="mb-2" />
+                  <Textarea value={example.description} onChange={(e) => handleArrayChange('usage_examples', index, { description: e.target.value })} placeholder="Description" />
+                  <Button variant="destructive" size="sm" onClick={() => removeArrayItem('usage_examples', index)} className="mt-2">
+                    <Trash2 className="mr-2 h-4 w-4" /> Remove
+                  </Button>
+                </div>
+              ))}
+              <Button onClick={() => addArrayItem('usage_examples', { title: '', description: '' })} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" /> Add Usage Example
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="edit-history" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Editor</TableHead>
+                    <TableHead>Changes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {material.edit_history && material.edit_history.map((edit, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{edit.date}</TableCell>
+                      <TableCell>{edit.editor}</TableCell>
+                      <TableCell>{edit.changes}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Button onClick={() => addArrayItem('edit_history', { date: new Date().toISOString(), editor: session.user.email, changes: 'Edited material' })} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" /> Add Edit Record
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="related-materials" className="mt-4">
+          <Card>
+            <CardContent className="pt-6">
+              {material.related_materials && material.related_materials.map((related, index) => (
+                <div key={index} className="mb-4">
+                  <Input value={related.name} onChange={(e) => handleArrayChange('related_materials', index, { name: e.target.value })} placeholder="Material Name" className="mb-2" />
+                  <Textarea value={related.description} onChange={(e) => handleArrayChange('related_materials', index, { description: e.target.value })} placeholder="Description" />
+                  <Button variant="destructive" size="sm" onClick={() => removeArrayItem('related_materials', index)} className="mt-2">
+                    <Trash2 className="mr-2 h-4 w-4" /> Remove
+                  </Button>
+                </div>
+              ))}
+              <Button onClick={() => addArrayItem('related_materials', { name: '', description: '' })} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" /> Add Related Material
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      <div className="flex justify-between mt-4">
+        <Button variant="outline" onClick={() => router.push(`/materials/${slug === 'new' ? '' : slug}`)}>Cancel</Button>
+        <Button onClick={handleSave} disabled={loading}>
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Changes
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/./matlas-wiki/app/materials/[slug]/page.js
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -121,23 +455,16 @@ export default function MaterialPage({ params }) {
   const [material, setMaterial] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [session, setSession] = useState(null);
-  const supabase = createClientComponentClient();
+  const session = useSession();
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-    };
-
-    fetchSession();
     fetchMaterial();
-  }, [slug, supabase.auth]);
+  }, [slug]);
 
   async function fetchMaterial() {
     try {
       setLoading(true);
-      setError(null);
       const { data, error } = await supabase
         .from('materials')
         .select('*')
@@ -147,8 +474,8 @@ export default function MaterialPage({ params }) {
       if (error) throw error;
       setMaterial(data);
     } catch (error) {
-      console.error('Error fetching material:', error);
-      setError('Failed to fetch material. Please try again.');
+      setError('Failed to fetch material');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -158,24 +485,17 @@ export default function MaterialPage({ params }) {
   if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
   if (!material) return <div className="container mx-auto px-4 py-8">Material not found</div>;
 
+  const getImageFilename = (url) => {
+    if (!url) return '';
+    const parts = url.split('/');
+    return parts[parts.length - 1];
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <h1 className="text-4xl font-bold mb-4">{material.name}</h1>
-          {material.header_image && (
-            <div className="mb-6">
-              <Image 
-                src={material.header_image}
-                alt={material.name}
-                width={800}
-                height={400}
-                layout="responsive"
-                objectFit="cover"
-                className="rounded-lg"
-              />
-            </div>
-          )}
           <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: material.description }} />
           
           <Tabs defaultValue="properties">
@@ -246,174 +566,23 @@ export default function MaterialPage({ params }) {
         </div>
         
         <div>
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Related Materials</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {material.related_materials && material.related_materials.map((related, index) => (
-                <div key={index} className="mb-4">
-                  <h3 className="font-semibold">{related.name}</h3>
-                  <p className="text-sm text-muted-foreground">{related.description}</p>
-                  <Link href={`/materials/${related.slug}`}>
-                    <Button variant="link" className="p-0">View</Button>
-                  </Link>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-          
-          {session && (
-            <Card>
-              <CardContent className="pt-6">
-                <Link href={`/materials/${material.slug}/edit`}>
-                  <Button className="w-full">Edit Material</Button>
-                </Link>
+          {material.header_image && (
+            <Card className="mb-6">
+              <CardContent className="p-0">
+                <Image 
+                  src={material.header_image}
+                  alt={material.name}
+                  width={400}
+                  height={300}
+                  layout="responsive"
+                  objectFit="cover"
+                  className="rounded-t-lg"
+                />
+                <p className="text-xs text-gray-500 p-2">{getImageFilename(material.header_image)}</p>
               </CardContent>
             </Card>
           )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/./matlas-wiki/app/materials/[slug]/page.js
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-export default function MaterialPage({ params }) {
-  const router = useRouter();
-  const { slug } = params;
-  const [material, setMaterial] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const session = useSession();
-  const supabase = useSupabaseClient();
-
-  useEffect(() => {
-    fetchMaterial();
-  }, [slug]);
-
-  async function fetchMaterial() {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('materials')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-      
-      if (error) throw error;
-      setMaterial(data);
-    } catch (error) {
-      setError('Failed to fetch material');
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
-  if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
-  if (!material) return <div className="container mx-auto px-4 py-8">Material not found</div>;
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <h1 className="text-4xl font-bold mb-4">{material.name}</h1>
-          {material.header_image && (
-            <div className="mb-6">
-              <Image 
-                src={material.header_image}
-                alt={material.name}
-                width={800}
-                height={400}
-                layout="responsive"
-                objectFit="cover"
-                className="rounded-lg"
-              />
-            </div>
-          )}
-          <p className="text-lg mb-6">{material.description}</p>
           
-          <Tabs defaultValue="properties">
-            <TabsList>
-              <TabsTrigger value="properties">Properties</TabsTrigger>
-              <TabsTrigger value="usage">Usage Examples</TabsTrigger>
-              <TabsTrigger value="history">Edit History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="properties">
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Property</TableHead>
-                        <TableHead>Value</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Object.entries(material.properties || {}).map(([key, value]) => (
-                        <TableRow key={key}>
-                          <TableCell className="font-medium">{key}</TableCell>
-                          <TableCell>{value}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="usage">
-              <Card>
-                <CardContent>
-                  {material.usage_examples && material.usage_examples.map((example, index) => (
-                    <div key={index} className="mb-4">
-                      <h3 className="text-lg font-semibold">{example.title}</h3>
-                      <p>{example.description}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="history">
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Editor</TableHead>
-                        <TableHead>Changes</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {material.edit_history && material.edit_history.map((edit, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{new Date(edit.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{edit.editor}</TableCell>
-                          <TableCell>{edit.changes}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-        
-        <div>
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Related Materials</CardTitle>
@@ -624,7 +793,6 @@ export default function MaterialsPage() {
           </Label>
         </div>
       </div>
-      {loading && <div>Loading...</div>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
         view === 'grid' ? (
@@ -688,147 +856,84 @@ export default function MaterialsPage() {
 }
 
 /./matlas-wiki/app/profile/page.js
-// app/profile/page.js
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { supabase, uploadFileToSupabase } from '../../lib/db';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null);
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-  const [website, setWebsite] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [profile, setProfile] = useState({ name: '', bio: '', website: '', avatar_url: '' });
   const [contributions, setContributions] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [message, setMessage] = useState({ type: null, content: null });
   const router = useRouter();
-
-  const fetchUserProfile = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      if (error) {
-        console.error('Error fetching profile:', error);
-      } else if (data) {
-        setName(data.name || '');
-        setBio(data.bio || '');
-        setWebsite(data.website || '');
-        setAvatarUrl(data.avatar_url || '');
-      }
-    } else {
-      router.push('/auth');
-    }
-  }, [router]);
-
-  const fetchUserContributions = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data, error } = await supabase
-        .from('contributions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) {
-        console.error('Error fetching contributions:', error);
-      } else {
-        setContributions(data);
-      }
-    }
-  }, []);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    fetchUserProfile();
-    fetchUserContributions();
-  }, [fetchUserProfile, fetchUserContributions]);
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return router.push('/auth');
 
-  async function handleProfileUpdate(e) {
+      const [profileData, contributionsData] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('contributions').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      ]);
+
+      if (profileData.data) setProfile(profileData.data);
+      if (contributionsData.data) setContributions(contributionsData.data);
+    };
+    fetchData();
+  }, [router, supabase]);
+
+  const handleChange = (e) => setProfile({ ...profile, [e.target.id]: e.target.value });
+
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    setMessage({ type: null, content: null });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('profiles').upsert({ ...profile, id: user.id, updated_at: new Date() });
+    setMessage(error
+      ? { type: 'error', content: 'Failed to update profile. Please try again.' }
+      : { type: 'success', content: 'Profile updated successfully!' }
+    );
+    setIsEditing(false);
+  };
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        name,
-        bio,
-        website,
-        avatar_url: avatarUrl,
-        updated_at: new Date(),
-      });
-
-    if (error) {
-      setError('Failed to update profile. Please try again.');
-    } else {
-      setSuccess('Profile updated successfully!');
-      setIsEditing(false);
-    }
-  }
-
-  async function handleAvatarUpload(e) {
+  const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     try {
-      const publicUrl = await uploadFileToSupabase(file, 'avatars', user.id);
-      setAvatarUrl(publicUrl);
-      
-      // Update the profile with the new avatar URL
-      const { error } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
-      setSuccess('Avatar updated successfully!');
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      setProfile({ ...profile, avatar_url: publicUrl });
+      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', profile.id);
+      setMessage({ type: 'success', content: 'Avatar updated successfully!' });
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      setError('Failed to upload avatar. Please try again.');
+      setMessage({ type: 'error', content: 'Failed to upload avatar. Please try again.' });
     }
-  }
-
-  if (!user) {
-    return <div>Loading...</div>;
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
-      
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+      {message.content && (
+        <Alert variant={message.type === 'error' ? "destructive" : "default"} className="mb-6">
+          <AlertDescription>{message.content}</AlertDescription>
         </Alert>
       )}
-      
-      {success && (
-        <Alert className="mb-6">
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <Card>
           <CardHeader>
@@ -838,56 +943,37 @@ export default function ProfilePage() {
             <form onSubmit={handleProfileUpdate} className="space-y-4">
               <div className="flex items-center space-x-4">
                 <Avatar className="w-20 h-20">
-                  <AvatarImage src={avatarUrl} alt={name} />
-                  <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={profile.avatar_url} alt={profile.name} />
+                  <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <Input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  disabled={!isEditing}
-                />
+                <Input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={!isEditing} />
               </div>
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input 
-                  id="name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={!isEditing}
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" value={user.email} disabled />
-              </div>
-              <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea 
-                  id="bio" 
-                  value={bio} 
-                  onChange={(e) => setBio(e.target.value)}
-                  disabled={!isEditing}
-                />
-              </div>
-              <div>
-                <Label htmlFor="website">Website</Label>
-                <Input 
-                  id="website" 
-                  value={website} 
-                  onChange={(e) => setWebsite(e.target.value)}
-                  disabled={!isEditing}
-                />
-              </div>
-              {isEditing ? (
-                <Button type="submit">Save Changes</Button>
-              ) : (
-                <Button type="button" onClick={() => setIsEditing(true)}>Edit Profile</Button>
-              )}
+              {['name', 'email', 'bio', 'website'].map((field) => (
+                <div key={field}>
+                  <Label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
+                  {field === 'bio' ? (
+                    <Textarea
+                      id={field}
+                      value={profile[field] || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing || field === 'email'}
+                    />
+                  ) : (
+                    <Input
+                      id={field}
+                      value={profile[field] || ''}
+                      onChange={handleChange}
+                      disabled={!isEditing || field === 'email'}
+                    />
+                  )}
+                </div>
+              ))}
+              <Button type={isEditing ? "submit" : "button"} onClick={() => !isEditing && setIsEditing(true)}>
+                {isEditing ? "Save Changes" : "Edit Profile"}
+              </Button>
             </form>
           </CardContent>
         </Card>
-
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Your Contributions</CardTitle>
@@ -916,7 +1002,6 @@ export default function ProfilePage() {
 }
 
 /./matlas-wiki/app/layout.js
-// app/layout.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -927,19 +1012,9 @@ import './globals.css';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
-import { Menu } from 'lucide-react';
+import { Menu, Home, Library, PlusCircle, User, LogOut, LogIn } from 'lucide-react';
 
-const fontHeading = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-heading',
-});
-
-const fontBody = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-body',
-});
+const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
 
 export default function RootLayout({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -953,13 +1028,8 @@ export default function RootLayout({ children }) {
     const handleChange = () => setIsDarkMode(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
 
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
@@ -972,46 +1042,42 @@ export default function RootLayout({ children }) {
     setIsMenuOpen(false);
   };
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const NavLink = ({ href, icon: Icon, onClick }) => (
+    <li>
+      <Link href={href} className="hover:text-primary-foreground block py-2 md:py-0" onClick={onClick}>
+        <Icon className="h-5 w-5" />
+      </Link>
+    </li>
+  );
 
   return (
-    <html lang="en" className={cn(fontHeading.variable, fontBody.variable, isDarkMode ? 'dark' : '')}>
+    <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
         <body className="min-h-screen flex flex-col bg-background text-foreground antialiased">
           <header className="bg-card text-card-foreground p-4">
             <nav className="container mx-auto flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold text-primary">
-                MatLas Wiki
-              </Link>
+              <Link href="/" className="text-2xl font-bold text-primary">MatLas Wiki</Link>
               <div className="md:hidden">
-                <Button onClick={toggleMenu} variant="ghost">
-                  <Menu />
-                </Button>
+                <Button onClick={() => setIsMenuOpen(!isMenuOpen)} variant="ghost"><Menu /></Button>
               </div>
               <ul className={`md:flex md:space-x-4 items-center ${isMenuOpen ? 'block' : 'hidden'} md:block absolute md:relative top-16 md:top-0 right-0 md:right-auto bg-card md:bg-transparent p-4 md:p-0 rounded shadow md:shadow-none`}>
-                <li><Link href="/" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Home</Link></li>
-                <li><Link href="/materials" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Materials Library</Link></li>
-                {user && (
-                  <li><Link href="/materials/new/edit" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Add Material</Link></li>
-                )}
+                <NavLink href="/" icon={Home} onClick={() => setIsMenuOpen(false)} />
+                <NavLink href="/materials" icon={Library} onClick={() => setIsMenuOpen(false)} />
+                {user && <NavLink href="/materials/new/edit" icon={PlusCircle} onClick={() => setIsMenuOpen(false)} />}
                 {user ? (
                   <>
-                    <li><Link href="/profile" className="hover:text-primary-foreground block py-2 md:py-0" onClick={() => setIsMenuOpen(false)}>Profile</Link></li>
-                    <li><Button onClick={handleSignOut}>Sign Out</Button></li>
+                    <NavLink href="/profile" icon={User} onClick={() => setIsMenuOpen(false)} />
+                    <li><Button onClick={handleSignOut}><LogOut className="h-5 w-5" /></Button></li>
                   </>
                 ) : (
-                  <li><Link href="/auth" onClick={() => setIsMenuOpen(false)}><Button>Sign In</Button></Link></li>
+                  <li><Link href="/auth" onClick={() => setIsMenuOpen(false)}><Button><LogIn className="h-5 w-5" /></Button></Link></li>
                 )}
               </ul>
             </nav>
           </header>
-          <main className="flex-grow container mx-auto px-4 py-8">
-            {children}
-          </main>
+          <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
           <footer className="bg-card text-card-foreground p-4 mt-8">
-            <div className="container mx-auto text-center text-sm">
-              &copy; 2024 Materials Wiki. All rights reserved.
-            </div>
+            <div className="container mx-auto text-center text-sm">&copy; 2024 Materials Wiki. All rights reserved.</div>
           </footer>
         </body>
       </SessionContextProvider>
@@ -1020,7 +1086,6 @@ export default function RootLayout({ children }) {
 }
 
 /./matlas-wiki/app/page.js
-// app/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -1048,7 +1113,6 @@ export default function HomePage() {
       setError(null);
 
       try {
-        // Fetch random materials
         const { data: materialsData, error: materialsError } = await supabase
           .from('materials')
           .select('id, name, description, header_image, slug, category, subcategory')
@@ -1057,14 +1121,12 @@ export default function HomePage() {
         if (materialsError) throw new Error(materialsError.message);
         setRandomMaterials(materialsData);
 
-        // Fetch all materials to get categories and subcategories
         const { data: allMaterials, error: allMaterialsError } = await supabase
           .from('materials')
           .select('category, subcategory');
 
         if (allMaterialsError) throw new Error(allMaterialsError.message);
 
-        // Organize categories and subcategories
         const categoriesObj = allMaterials.reduce((acc, material) => {
           if (material.category) {
             if (!acc[material.category]) {
@@ -1077,7 +1139,6 @@ export default function HomePage() {
           return acc;
         }, {});
 
-        // Convert Sets to Arrays
         Object.keys(categoriesObj).forEach(category => {
           categoriesObj[category] = Array.from(categoriesObj[category]);
         });
@@ -1127,55 +1188,56 @@ export default function HomePage() {
       </div>
 
       <h2 className="text-2xl font-bold mb-4">Random Materials</h2>
-      {loading && <div>Loading random materials...</div>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {randomMaterials.map((material) => (
-            <Card key={material.id} className="hover:shadow-lg transition-shadow flex flex-col h-full">
-              <div className="h-48 relative">
-                {material.header_image ? (
-                  <Image 
-                    src={material.header_image}
-                    alt={material.name}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-t-lg"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-                    <span className="text-gray-400">No image available</span>
-                  </div>
-                )}
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl">{material.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-muted-foreground mb-4">
-                  {material.description ? `${material.description.substring(0, 100)}...` : 'No description available.'}
-                </p>
-              </CardContent>
-              <CardContent className="pt-0">
-                <Link href={`/materials/${material.slug}`}>
-                  <Button variant="outline" size="sm" className="w-full">View Details</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+  {randomMaterials.map((material) => (
+    <Card key={material.id} className="hover:shadow-lg transition-shadow flex flex-col">
+      <div className="h-32 relative">
+        {material.header_image ? (
+          <Image 
+            src={material.header_image}
+            alt={material.name}
+            layout="fill"
+            objectFit="cover"
+            className="rounded-t-lg"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
+            <span className="text-gray-400">No image</span>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col flex-grow">
+        <CardHeader className="p-3">
+          <CardTitle className="text-lg">{material.name}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 pt-0 flex flex-col flex-grow">
+          <p className="text-sm text-muted-foreground mb-2 flex-grow">
+            {material.description ? `${material.description.substring(0, 60)}...` : 'No description available.'}
+          </p>
+          <Link href={`/materials/${material.slug}`} className="mt-auto">
+            <Button variant="outline" size="sm" className="w-full">View Details</Button>
+          </Link>
+        </CardContent>
+      </div>
+    </Card>
+  ))}
+</div>
       )}
 
       <h2 className="text-2xl font-bold mb-4">Material Categories</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
         {Object.entries(categories).map(([category, subcategories]) => (
           <Card key={category} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl">{category}</CardTitle>
+            <CardHeader className="p-3">
+              <CardTitle className="text-lg">{category}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-2">{subcategories.length} subcategories</p>
-              <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)}>Explore</Button>
+            <CardContent className="p-3 pt-0">
+              <p className="text-sm text-muted-foreground mb-2">{subcategories.length} subcategories</p>
+              <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)} className="w-full">
+                Explore
+              </Button>
             </CardContent>
           </Card>
         ))}

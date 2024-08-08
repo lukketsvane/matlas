@@ -11,27 +11,28 @@ client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
 
 def generate_material(name, category, subcategory):
-    prompt = f"""Generate a detailed and creative material entry for {name} ({category}, {subcategory}). Include extensive information and be more expansive in your descriptions. Follow this format, but feel free to add more properties and usage examples as appropriate for the specific material:
+    prompt = f"""Generate a detailed and creative material entry for {name} ({category}, {subcategory}). Include extensive information and be more expansive in your descriptions. Follow this format, but feel free to add more properties and usage examples as appropriate for the specific wood:
 
     {{
         "name": "{name}",
-        "description": "A comprehensive description of the material, including its key characteristics, composition, and notable features.",
+        "description": "A comprehensive description of the wood, including its key characteristics, origin, appearance, and notable features.",
         "properties": {{
             "Density": "Value in g/cm³",
-            "Hardness": "Value in appropriate scale (HRC, HB, etc.)",
-            "Melting Point": "Value in °C",
-            "Tensile Strength": "Value in MPa",
-            "Yield Strength": "Value in MPa",
+            "Janka Hardness": "Value in lbf (pounds-force)",
+            "Modulus of Rupture": "Value in MPa",
             "Elastic Modulus": "Value in GPa",
-            "Elongation": "Percentage",
-            "Thermal Conductivity": "Value in W/m·K",
-            "Electrical Resistivity": "Value in μΩ·cm",
-            "Specific Heat Capacity": "Value in J/kg·K",
-            "Corrosion Resistance": "Detailed description",
-            "Machinability": "Description or rating",
-            "Weldability": "Description or rating",
-            "Additional Property 1": "Value or description",
-            "Additional Property 2": "Value or description"
+            "Crushing Strength": "Value in MPa",
+            "Shrinkage": "Radial %, Tangential %, Volumetric %",
+            "Workability": "Description",
+            "Durability": "Description",
+            "Texture": "Description",
+            "Grain": "Description",
+            "Color": "Description",
+            "Odor": "Description (if notable)",
+            "Rot Resistance": "Description",
+            "Availability": "Description",
+            "Price": "Relative cost description",
+            "Sustainability": "Information on harvesting and conservation status"
         }},
         "usage_examples": [
             {{"title": "Example 1", "description": "Detailed description of usage in this field."}},
@@ -43,9 +44,9 @@ def generate_material(name, category, subcategory):
             {{"date": "2024-06-15", "editor": "AI Assistant", "changes": "Comprehensive update with expanded information."}}
         ],
         "related_materials": [
-            {{"name": "Related Material 1", "description": "Detailed comparison or relation to the main material."}},
-            {{"name": "Related Material 2", "description": "Detailed comparison or relation to the main material."}},
-            {{"name": "Related Material 3", "description": "Detailed comparison or relation to the main material."}}
+            {{"name": "Related Wood 1", "description": "Detailed comparison or relation to the main wood."}},
+            {{"name": "Related Wood 2", "description": "Detailed comparison or relation to the main wood."}},
+            {{"name": "Related Wood 3", "description": "Detailed comparison or relation to the main wood."}}
         ]
     }}
 
@@ -81,12 +82,12 @@ def generate_material(name, category, subcategory):
         "subcategory": subcategory,
         "slug": name.lower().replace(' ', '-'),
         "header_image": "",
-        "category_id": {"Metal": 1, "Polymer": 2, "Ceramic": 3, "Composite": 4, "Other Engineering Material": 5}[category]
+        "category_id": {"Hardwoods": 1, "Softwoods": 2, "Exotic Woods": 3, "Engineered Woods": 4}[category]
     })
     return material
 
 def main():
-    with open('materials.json', 'r') as f:
+    with open('wood.json', 'r') as f:
         materials_data = json.load(f)
     
     for category, subcategories in materials_data.items():
