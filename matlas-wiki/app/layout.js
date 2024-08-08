@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const supabase = createClientComponentClient();
+  const pathname = usePathname();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -43,20 +45,31 @@ export default function RootLayout({ children }) {
     setIsDarkMode(!isDarkMode);
   };
 
-  const NavLink = ({ href, icon: Icon, tooltip }) => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link href={href} className="p-2 hover:bg-gray-100 rounded-md">
-            <Icon className="h-6 w-6" />
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{tooltip}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+  const NavLink = ({ href, icon: Icon, tooltip }) => {
+    const isActive = pathname === href;
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link 
+              href={href} 
+              className={cn(
+                "p-2 rounded-md transition-colors duration-200",
+                isActive 
+                  ? "bg-primary text-primary-foreground" 
+                  : "hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              <Icon className="h-6 w-6" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   return (
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
@@ -72,10 +85,10 @@ export default function RootLayout({ children }) {
                 <NavLink href="/discover" icon={Search} tooltip="Discover" />
                 <NavLink href="/materials" icon={Library} tooltip="Materials" />
                 {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
-                {user && <NavLink href="/profile" icon={User} tooltip="Profile" />}
               </nav>
             </div>
             <div className="mb-8 flex flex-col items-center space-y-4">
+              {user && <NavLink href="/profile" icon={User} tooltip="Profile" />}
               <NavLink href="/info" icon={Info} tooltip="Information" />
               <Button onClick={toggleDarkMode} variant="ghost" size="icon">
                 {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
