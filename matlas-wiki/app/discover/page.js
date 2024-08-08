@@ -289,7 +289,6 @@ export default function DiscoverPage() {
         </div>
       )}
 
-      {loading && <p className="text-center mt-4">Loading materials...</p>}
       
       {!loading && materials.length === 0 && (
         <p className="text-center mt-4">No materials found. Try adjusting your search or filters.</p>

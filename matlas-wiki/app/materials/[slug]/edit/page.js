@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -12,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plus, Trash2, Eye } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { generateSlug } from '@/lib/utils';
@@ -20,6 +22,14 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false, loading: (
 import 'react-quill/dist/quill.snow.css';
 
 const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '' };
+
+const tabOptions = [
+  { value: "basic-info", label: "Basic Info" },
+  { value: "properties", label: "Properties" },
+  { value: "usage-examples", label: "Usage Examples" },
+  { value: "edit-history", label: "Edit History" },
+  { value: "related-materials", label: "Related Materials" }
+];
 
 export default function EditMaterialPage({ params }) {
   const router = useRouter();
@@ -32,6 +42,14 @@ export default function EditMaterialPage({ params }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isPreview, setIsPreview] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const fetchMaterial = useCallback(async () => {
     if (slug === 'new') return;
@@ -84,12 +102,27 @@ export default function EditMaterialPage({ params }) {
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Editing: {material.name || "New Material"}</h1>
       {error && <Alert variant="destructive" className="mb-4"><AlertDescription>{error}</AlertDescription></Alert>}
+      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          {["Basic Info", "Properties", "Usage Examples", "Edit History", "Related Materials"].map((tab) => (
-            <TabsTrigger key={tab} value={tab.toLowerCase().replace(' ', '-')}>{tab}</TabsTrigger>
-          ))}
-        </TabsList>
+        {isMobile ? (
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full mb-4">
+              <SelectValue placeholder="Select tab" />
+            </SelectTrigger>
+            <SelectContent>
+              {tabOptions.map((tab) => (
+                <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <TabsList className="grid w-full grid-cols-5">
+            {tabOptions.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        )}
+
         <TabsContent value="basic-info" className="mt-4">
           <Card>
             <CardContent className="pt-6 space-y-4">
@@ -110,12 +143,13 @@ export default function EditMaterialPage({ params }) {
                 {isPreview ? (
                   <div className="prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: material.description }} />
                 ) : (
-                  <ReactQuill value={material.description} onChange={(content) => handleChange('description', content)} className="h-[calc(100vh-400px)] mt-2" />
+                  <ReactQuill value={material.description} onChange={(content) => handleChange('description', content)} className="h-[calc(90vh-200px)] mt-2" />
                 )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="properties" className="mt-4">
           <Card>
             <CardContent className="pt-6">
@@ -145,6 +179,7 @@ export default function EditMaterialPage({ params }) {
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="usage-examples" className="mt-4">
           <Card>
             <CardContent className="pt-6">
@@ -163,6 +198,7 @@ export default function EditMaterialPage({ params }) {
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="edit-history" className="mt-4">
           <Card>
             <CardContent className="pt-6">
@@ -190,6 +226,7 @@ export default function EditMaterialPage({ params }) {
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="related-materials" className="mt-4">
           <Card>
             <CardContent className="pt-6">
@@ -209,11 +246,12 @@ export default function EditMaterialPage({ params }) {
           </Card>
         </TabsContent>
       </Tabs>
+
       <div className="flex justify-between mt-4">
         <Button variant="outline" onClick={() => router.push(`/materials/${slug === 'new' ? '' : slug}`)}>Cancel</Button>
         <Button onClick={handleSave} disabled={loading}>
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save Changes
+          Save÷
         </Button>
       </div>
     </div>

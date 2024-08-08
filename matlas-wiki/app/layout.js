@@ -95,16 +95,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
-        <body className="flex h-screen bg-background text-foreground antialiased">
+        <body className="flex h-screen bg-background text-foreground antialiased overflow-hidden">
           <aside 
             className={cn(
-              "bg-card text-card-foreground w-16 flex-shrink-0 fixed md:relative h-full z-50 transition-all duration-300 ease-in-out",
+              "bg-card text-card-foreground w-16 flex-shrink-0 fixed md:relative z-50 transition-all duration-300 ease-in-out",
               isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}
           >
-            <div className="flex flex-col h-full justify-between p-4">
-              <div>
-                <Link href="/" className="block mb-8">
+            <div className="flex flex-col h-full justify-between py-4 overflow-y-auto">
+              <div className="flex flex-col items-center space-y-4">
+                <Link href="/" className="mb-4">
                   <Image
                     src="/logo-icon.svg"
                     alt="MatLas Wiki Logo"
@@ -116,15 +116,13 @@ export default function RootLayout({ children }) {
                     )}
                   />
                 </Link>
-                <nav className="flex flex-col items-center space-y-4">
-                  <NavLink href="/" icon={Home} tooltip="Home" />
-                  <NavLink href="/discover" icon={Search} tooltip="Discover" />
-                  <NavLink href="/materials" icon={Library} tooltip="Materials" />
-                  {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
-                  {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
-                </nav>
+                <NavLink href="/" icon={Home} tooltip="Home" />
+                <NavLink href="/discover" icon={Search} tooltip="Discover" />
+                <NavLink href="/materials" icon={Library} tooltip="Materials" />
+                {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
+                {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
               </div>
-              <div className="flex flex-col items-center space-y-4">
+              <div className="flex flex-col items-center space-y-4 mt-auto">
                 {user && <NavLink href="/profile" icon={User} tooltip="Profile" />}
                 <NavLink href="/info" icon={Info} tooltip="Information" />
                 <Button onClick={toggleDarkMode} variant="ghost" size="icon">
@@ -144,7 +142,7 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </aside>
-          <div className="flex-grow flex flex-col">
+          <div className="flex-grow flex flex-col h-screen overflow-hidden">
             <header className="bg-card text-card-foreground p-4 md:hidden">
               <Button onClick={toggleSidebar} variant="ghost">
                 <Menu className="h-6 w-6" />
@@ -164,4 +162,4 @@ export default function RootLayout({ children }) {
       </SessionContextProvider>
     </html>
   );
-}	
+}

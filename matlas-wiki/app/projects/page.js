@@ -106,7 +106,6 @@ export default function ProjectsPage() {
     }
   }
 
-  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
   if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
 
   return (

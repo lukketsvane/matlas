@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Search } from 'lucide-react';
 import { MaterialCard } from '@/components/MaterialCard';
+import { motion } from 'framer-motion';
 
 export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,12 +78,43 @@ export default function HomePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 0.5 }}
+      className="container mx-auto px-4 py-8"
+    >
       <div className="flex flex-col items-center mb-12">
-        <Image src="/matlas-logo.png" alt="MatLas Wiki logo" width={200} height={200} className="mb-8" />
-        <h1 className="text-4xl font-bold text-primary mb-6">MatLas Wiki</h1>
-        <p className="text-xl mb-6">The Free Material Encyclopedia</p>
-        <form onSubmit={handleSearch} className="w-full max-w-2xl mb-8">
+        <motion.div
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Image src="/matlas-logo.png" alt="MatLas Wiki logo" width={200} height={200} className="mb-8" />
+        </motion.div>
+        <motion.h1 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-4xl font-bold text-primary mb-6"
+        >
+          MatLas Wiki
+        </motion.h1>
+        <motion.p 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="text-xl mb-6"
+        >
+          The Free Material Encyclopedia
+        </motion.p>
+        <motion.form 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          onSubmit={handleSearch} 
+          className="w-full max-w-2xl mb-8"
+        >
           <div className="relative">
             <Search 
               className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
@@ -96,41 +128,84 @@ export default function HomePage() {
               className="pl-10 pr-4"
             />
           </div>
-        </form>
+        </motion.form>
       </div>
 
-      <h2 className="text-2xl font-bold mb-4">Random Materials</h2>
+      <motion.h2 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+        className="text-2xl font-bold mb-4"
+      >
+        Random Materials
+      </motion.h2>
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-          {randomMaterials.map((material) => (
-            <MaterialCard key={material.id} material={material} />
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
+        >
+          {randomMaterials.map((material, index) => (
+            <motion.div
+              key={material.id}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1 + (index * 0.1), duration: 0.5 }}
+            >
+              <MaterialCard material={material} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
-      <h2 className="text-2xl font-bold mb-4">Material Categories</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
-        {Object.entries(categories).map(([category, subcategories]) => (
-          <Card key={category} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="p-3">
-              <CardTitle className="text-lg">{category}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <p className="text-sm text-muted-foreground mb-2">{subcategories.length} subcategories</p>
-              <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)} className="w-full">
-                Explore
-              </Button>
-            </CardContent>
-          </Card>
+      <motion.h2 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1.2, duration: 0.5 }}
+        className="text-2xl font-bold mb-4"
+      >
+        Material Categories
+      </motion.h2>
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1.4, duration: 0.5 }}
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12"
+      >
+        {Object.entries(categories).map(([category, subcategories], index) => (
+          <motion.div
+            key={category}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1.4 + (index * 0.05), duration: 0.5 }}
+          >
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="p-3">
+                <CardTitle className="text-lg">{category}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 pt-0">
+                <p className="text-sm text-muted-foreground mb-2">{subcategories.length} subcategories</p>
+                <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)} className="w-full">
+                  Explore
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="text-center">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1.6, duration: 0.5 }}
+        className="text-center"
+      >
         <Button variant="outline" className="text-primary">
           Read MatLas Wiki in your language <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
