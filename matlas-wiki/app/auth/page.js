@@ -5,46 +5,62 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [error, setError] = useState(null);
+  const [message, setMessage] = useState({ type: null, content: null });
   const [activeTab, setActiveTab] = useState('signup');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('userEmail');
-    if (storedEmail) {
-      setEmail(storedEmail);
-      setActiveTab('signin');
-    }
+    if (storedEmail) { setEmail(storedEmail); setActiveTab('signin'); }
+    checkUser();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) router.push('/profile');
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    setError(null);
-    const { error } = await supabase.auth.signUp({
-      email, password, options: { data: { name } }
-    });
-    if (error) setError(error.message);
-    else {
+    setMessage({ type: null, content: null });
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email, password, 
+        options: { data: { name }, emailRedirectTo: `${window.location.origin}/auth/callback` }
+      });
+      if (error) throw error;
+      setMessage({ type: 'success', content: "Check your email for the confirmation link." });
       localStorage.setItem('userEmail', email);
-      router.push('/');
+    } catch (error) {
+      setMessage({ type: 'error', content: error.message });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    setError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    else {
+    setMessage({ type: null, content: null });
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       localStorage.setItem('userEmail', email);
-      router.push('/');
+      router.push('/profile');
+    } catch (error) {
+      setMessage({ type: 'error', content: error.message });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,8 +91,14 @@ export default function AuthPage() {
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                {error && <p className="text-red-500">{error}</p>}
-                <Button type="submit" className="w-full">Sign Up</Button>
+                {message.content && (
+                  <Alert variant={message.type === 'error' ? "destructive" : "default"}>
+                    <AlertDescription>{message.content}</AlertDescription>
+                  </Alert>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing up...' : 'Sign Up'}
+                </Button>
               </form>
             </TabsContent>
             <TabsContent value="signin">
@@ -89,8 +111,14 @@ export default function AuthPage() {
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                {error && <p className="text-red-500">{error}</p>}
-                <Button type="submit" className="w-full">Sign In</Button>
+                {message.content && (
+                  <Alert variant={message.type === 'error' ? "destructive" : "default"}>
+                    <AlertDescription>{message.content}</AlertDescription>
+                  </Alert>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </Button>
               </form>
             </TabsContent>
           </Tabs>

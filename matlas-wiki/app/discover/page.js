@@ -138,8 +138,6 @@ export default function DiscoverPage() {
         </TabsList>
       </Tabs>
       {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-      {loading ? (
-        <div className="text-center">Loading...</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {materials.map((material) => (
