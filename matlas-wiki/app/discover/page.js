@@ -191,8 +191,8 @@ export default function DiscoverPage() {
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
           <TabsList>
-            <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /> Grid</TabsTrigger>
-            <TabsTrigger value="list"><List className="mr-2 h-4 w-4" /> List</TabsTrigger>
+            <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /></TabsTrigger>
+            <TabsTrigger value="list"><List className="mr-2 h-4 w-4" /></TabsTrigger>
           </TabsList>
         </Tabs>
         <form onSubmit={handleSearch} className="flex-1 flex gap-2">

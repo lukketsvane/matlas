@@ -1,9 +1,13 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Input } from "@/components/ui/input";
+import { Search } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
-export default function SearchBar() {
+
+export default function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
   const [query, setQuery] = useState('');
   const router = useRouter();
 
@@ -13,20 +17,18 @@ export default function SearchBar() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8">
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search materials..."
-        className="w-full p-2 border rounded-l"
-      />
-      <button
-        type="submit"
-        className="text-white px-4 py-2 rounded-r"
-      >
-        Search
-      </button>
+    <form onSubmit={handleSubmit} className="flex-1 flex gap-2">
+      <div className="relative flex-1">
+        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="Search materials..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-10 pr-4"
+        />
+      </div>
+      <Button type="submit">Search</Button>
     </form>
   );
 }

@@ -664,10 +664,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { MaterialCard } from '@/components/MaterialCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -785,161 +785,143 @@ export default function MaterialsPage() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col mb-6">
-        <h1 className="text-3xl font-bold text-primary mb-4">Materials Library</h1>
-        <div className="flex flex-wrap gap-4 items-center mb-4">
-          <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
-            <TabsList>
-              <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /> Grid</TabsTrigger>
-              <TabsTrigger value="table"><List className="mr-2 h-4 w-4" /> Table</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search materials..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4"
-              />
-            </div>
-            <Button type="submit">Search</Button>
-          </form>
-          <Button onClick={toggleFilter} variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
-            Filters
-          </Button>
+    <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row">
+      <div className="flex-grow">
+        <div className="flex flex-col mb-6">
+          <h1 className="text-3xl font-bold text-primary mb-4">Materials Library</h1>
+          <div className="flex flex-wrap gap-4 items-center mb-4">
+            <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
+              <TabsList>
+                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /> Grid</TabsTrigger>
+                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" /> Table</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search materials..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4"
+                />
+              </div>
+              <Button type="submit">Search</Button>
+            </form>
+            <Button onClick={toggleFilter} variant="outline" className="md:hidden">
+              <Filter className="mr-2 h-4 w-4" />
+              Filters
+            </Button>
+          </div>
         </div>
-        {showFilters && (
-          <div className="bg-card p-4 rounded-md shadow mb-4">
-            <h3 className="text-lg font-semibold mb-2">Filters</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        {error && <div className="text-red-500 mb-4">Error: {error}</div>}
+        {!loading && !error && (
+          <>
+            {view === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedMaterials.map((material) => (
+                  <MaterialCard key={material.id} material={material} />
+                ))}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left p-2">Name</th>
+                      <th className="text-left p-2">Description</th>
+                      <th className="text-left p-2">Category</th>
+                      <th className="text-left p-2">Subcategory</th>
+                      <th className="text-left p-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedMaterials.map((material) => (
+                      <tr key={material.id} className="border-t">
+                        <td className="p-2">{material.name}</td>
+                        <td className="p-2">{stripHtmlTags(material.description).substring(0, 100)}...</td>
+                        <td className="p-2">{material.category}</td>
+                        <td className="p-2">{material.subcategory}</td>
+                        <td className="p-2">
+                          <Link href={`/materials/${material.slug}`}>
+                            <Button size="sm" variant="outline">View Details</Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <Pagination
+              className="mt-8"
+              currentPage={currentPage}
+              totalPages={Math.ceil(materials.length / itemsPerPage)}
+              onPageChange={setCurrentPage}
+            />
+          </>
+        )}
+      </div>
+      <div className={`filters-container ${showFilters ? 'block' : 'hidden'} md:block md:ml-8 w-full md:w-1/4`}>
+        <div className="bg-card p-4 rounded-md shadow mb-4">
+          <h3 className="text-lg font-semibold mb-2">Filters</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-4 mb-4">
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {Object.keys(categories).map((category) => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedCategory !== 'all' && (
               <div>
-                <Label htmlFor="category">Category</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
+                <Label htmlFor="subcategory">Subcategory</Label>
+                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                  <SelectTrigger id="subcategory">
+                    <SelectValue placeholder="Select subcategory" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All categories</SelectItem>
-                    {Object.keys(categories).map((category) => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    <SelectItem value="all">All subcategories</SelectItem>
+                    {categories[selectedCategory]?.map((subcategory) => (
+                      <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              {selectedCategory !== 'all' && (
-                <div>
-                  <Label htmlFor="subcategory">Subcategory</Label>
-                  <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                    <SelectTrigger id="subcategory">
-                      <SelectValue placeholder="Select subcategory" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All subcategories</SelectItem>
-                      {categories[selectedCategory]?.map((subcategory) => (
-                        <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label className="text-base font-semibold">Search in:</Label>
-              <div className="flex flex-wrap gap-4">
-                {Object.entries(advancedSearch).map(([key, value]) => (
-                  <Label key={key} className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={value}
-                      onCheckedChange={(checked) => setAdvancedSearch({...advancedSearch, [key]: checked})}
-                    />
-                    <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</span>
-                  </Label>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-end mt-4">
-              <Button onClick={resetFilters} variant="outline" className="mr-2">Reset</Button>
-              <Button onClick={fetchMaterials}>Apply Filters</Button>
-            </div>
+            )}
           </div>
-        )}
-      </div>
-      {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-      {!loading && !error && (
-        <>
-          {view === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedMaterials.map((material) => (
-                <Card key={material.id} className="hover:shadow-lg transition-shadow">
-                  {material.header_image && (
-                    <div className="h-40 relative">
-                      <Image 
-                        src={material.header_image}
-                        alt={material.name}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-t-lg"
-                      />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <CardTitle className="text-xl">{material.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">{stripHtmlTags(material.description).substring(0, 100)}...</p>
-                    <Link href={`/materials/${material.slug}`}>
-                      <Button variant="outline">View Details</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+          <div className="space-y-2">
+            <Label className="text-base font-semibold">Search in:</Label>
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(advancedSearch).map(([key, value]) => (
+                <Label key={key} className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={value}
+                    onCheckedChange={(checked) => setAdvancedSearch({...advancedSearch, [key]: checked})}
+                  />
+                  <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</span>
+                </Label>
               ))}
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="text-left p-2">Name</th>
-                    <th className="text-left p-2">Description</th>
-                    <th className="text-left p-2">Category</th>
-                    <th className="text-left p-2">Subcategory</th>
-                    <th className="text-left p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedMaterials.map((material) => (
-                    <tr key={material.id} className="border-t">
-                      <td className="p-2">{material.name}</td>
-                      <td className="p-2">{stripHtmlTags(material.description).substring(0, 100)}...</td>
-                      <td className="p-2">{material.category}</td>
-                      <td className="p-2">{material.subcategory}</td>
-                      <td className="p-2">
-                        <Link href={`/materials/${material.slug}`}>
-                          <Button size="sm" variant="outline">View Details</Button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <Pagination
-            className="mt-8"
-            currentPage={currentPage}
-            totalPages={Math.ceil(materials.length / itemsPerPage)}
-            onPageChange={setCurrentPage}
-          />
-        </>
-      )}
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button onClick={resetFilters} variant="outline" className="mr-2">Reset</Button>
+            <Button onClick={fetchMaterials}>Apply Filters</Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
 
 /./matlas-wiki/app/profile/page.js
 'use client';
@@ -1214,7 +1196,7 @@ function ProfileSkeleton() {
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
@@ -1222,7 +1204,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Home, Search, Library, PlusCircle, User, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
+import { Home, Search, Library, PlusCircle, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
 
 const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
 
@@ -1230,10 +1212,8 @@ export default function RootLayout({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
-  const router = useRouter();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -1241,28 +1221,14 @@ export default function RootLayout({ children }) {
     const handleChange = () => setIsDarkMode(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsSidebarOpen(window.innerWidth >= 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
 
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
-      window.removeEventListener('resize', checkMobile);
       subscription.unsubscribe();
     };
   }, [supabase.auth]);
-
-  useEffect(() => {
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    }
-  }, [pathname, isMobile]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -1290,7 +1256,7 @@ export default function RootLayout({ children }) {
                   ? "bg-primary text-primary-foreground" 
                   : "hover:bg-accent hover:text-accent-foreground"
               )}
-              onClick={() => isMobile && setIsSidebarOpen(false)}
+              onClick={() => setIsSidebarOpen(false)}
             >
               <Icon className="h-6 w-6" />
             </Link>
@@ -1306,14 +1272,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
-        <body className="flex h-screen bg-background text-foreground antialiased overflow-hidden">
-          <aside 
-            className={cn(
-              "bg-card text-card-foreground w-16 flex-shrink-0 fixed md:relative z-50 transition-all duration-300 ease-in-out",
-              isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-            )}
-          >
-            <div className="flex flex-col h-full justify-between py-4 overflow-y-auto">
+        <body className="flex h-screen overflow-hidden">
+          <aside className="sidebar">
+            <div className="flex flex-col h-full justify-between py-4">
               <div className="flex flex-col items-center space-y-4">
                 <Link href="/" className="mb-4">
                   <Image
@@ -1321,10 +1282,7 @@ export default function RootLayout({ children }) {
                     alt="MatLas Wiki Logo"
                     width={32}
                     height={32}
-                    className={cn(
-                      "transition-all duration-200",
-                      isDarkMode ? "filter invert" : ""
-                    )}
+                    className={isDarkMode ? "filter invert" : ""}
                   />
                 </Link>
                 <NavLink href="/" icon={Home} tooltip="Home" />
@@ -1334,7 +1292,30 @@ export default function RootLayout({ children }) {
                 {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
               </div>
               <div className="flex flex-col items-center space-y-4 mt-auto">
-                {user && <NavLink href="/profile" icon={User} tooltip="Profile" />}
+                {user && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link 
+                          href="/profile" 
+                          className="p-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+                          onClick={() => setIsSidebarOpen(false)}
+                        >
+                          <Image
+                            src={user.user_metadata.avatar_url || "/default-avatar.png"}
+                            alt="User Avatar"
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Profile</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 <NavLink href="/info" icon={Info} tooltip="Information" />
                 <Button onClick={toggleDarkMode} variant="ghost" size="icon">
                   {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -1353,19 +1334,19 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </aside>
-          <div className="flex-grow flex flex-col h-screen overflow-hidden">
+          <div className="flex-grow flex flex-col">
             <header className="bg-card text-card-foreground p-4 md:hidden">
               <Button onClick={toggleSidebar} variant="ghost">
                 <Menu className="h-6 w-6" />
               </Button>
             </header>
-            <main className="flex-grow overflow-auto p-6">
+            <main className="main-content">
               {children}
             </main>
           </div>
-          {isMobile && isSidebarOpen && (
+          {isSidebarOpen && (
             <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
               onClick={toggleSidebar}
             />
           )}
@@ -1374,6 +1355,7 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
 
 /./matlas-wiki/app/page.js
 'use client';

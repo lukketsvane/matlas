@@ -1,3 +1,4 @@
+// app/layout.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +12,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Home, Search, Library, PlusCircle, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
+import { Home, Search, Library, PlusCircle, User, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
 
 const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setIsSidebarOpen(false);
   };
 
   const toggleDarkMode = () => {
@@ -60,7 +62,7 @@ export default function RootLayout({ children }) {
               className={cn(
                 "p-2 rounded-md transition-colors duration-200",
                 isActive 
-                  ? "bg-primary text-primary-foreground" 
+                  ? "bg-primary text-primary-foreground shadow-lg transform scale-105" 
                   : "hover:bg-accent hover:text-accent-foreground"
               )}
               onClick={() => setIsSidebarOpen(false)}
@@ -79,82 +81,80 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
-        <body className="flex h-screen overflow-hidden">
-          <aside className="sidebar">
-            <div className="flex flex-col h-full justify-between py-4">
-              <div className="flex flex-col items-center space-y-4">
-                <Link href="/" className="mb-4">
-                  <Image
-                    src="/logo-icon.svg"
-                    alt="MatLas Wiki Logo"
-                    width={32}
-                    height={32}
-                    className={isDarkMode ? "filter invert" : ""}
-                  />
-                </Link>
-                <NavLink href="/" icon={Home} tooltip="Home" />
-                <NavLink href="/discover" icon={Search} tooltip="Discover" />
-                <NavLink href="/materials" icon={Library} tooltip="Materials" />
-                {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
-                {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
-              </div>
-              <div className="flex flex-col items-center space-y-4 mt-auto">
-                {user && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link 
-                          href="/profile" 
-                          className="p-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
-                          onClick={() => setIsSidebarOpen(false)}
-                        >
-                          <Image
-                            src={user.user_metadata.avatar_url || "/default-avatar.png"}
-                            alt="User Avatar"
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Profile</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-                <NavLink href="/info" icon={Info} tooltip="Information" />
-                <Button onClick={toggleDarkMode} variant="ghost" size="icon">
-                  {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+        <body className="flex h-screen bg-background text-foreground antialiased">
+          <aside className={`fixed inset-y-0 z-30 flex flex-col justify-between bg-card text-card-foreground w-16 md:w-20 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+            <div className="flex flex-col items-center mt-4 space-y-4">
+              <Link href="/" className="block mb-4">
+                <Image
+                  src="/logo-icon.svg"
+                  alt="MatLas Wiki Logo"
+                  width={32}
+                  height={32}
+                  className={isDarkMode ? "filter invert" : ""}
+                />
+              </Link>
+              <NavLink href="/" icon={Home} tooltip="Home" />
+              <NavLink href="/discover" icon={Search} tooltip="Discover" />
+              <NavLink href="/materials" icon={Library} tooltip="Materials" />
+              {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
+              {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
+            </div>
+            <div className="flex flex-col items-center mb-4 space-y-4">
+              {user && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link 
+                        href="/profile" 
+                        className="p-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => setIsSidebarOpen(false)}
+                      >
+                        <Image
+                          src={user.user_metadata.avatar_url || "/default-avatar.png"}
+                          alt="User Avatar"
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Profile</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              <NavLink href="/info" icon={Info} tooltip="Information" />
+              <Button onClick={toggleDarkMode} variant="ghost" size="icon">
+                {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+              </Button>
+              {user ? (
+                <Button onClick={handleSignOut} variant="ghost" size="icon">
+                  <LogOut className="h-6 w-6" />
                 </Button>
-                {user ? (
-                  <Button onClick={handleSignOut} variant="ghost" size="icon">
-                    <LogOut className="h-6 w-6" />
+              ) : (
+                <Link href="/auth">
+                  <Button variant="ghost" size="icon">
+                    <LogIn className="h-6 w-6" />
                   </Button>
-                ) : (
-                  <Link href="/auth">
-                    <Button variant="ghost" size="icon">
-                      <LogIn className="h-6 w-6" />
-                    </Button>
-                  </Link>
-                )}
-              </div>
+                </Link>
+              )}
             </div>
           </aside>
-          <div className="flex-grow flex flex-col">
+          <div className="flex-grow flex flex-col ml-0 md:ml-16 md:ml-20">
             <header className="bg-card text-card-foreground p-4 md:hidden">
               <Button onClick={toggleSidebar} variant="ghost">
                 <Menu className="h-6 w-6" />
               </Button>
             </header>
-            <main className="main-content">
+            <main className="flex-grow overflow-auto p-6">
               {children}
             </main>
           </div>
           {isSidebarOpen && (
             <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-              onClick={toggleSidebar}
+              className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+              onClick={() => setIsSidebarOpen(false)}
             />
           )}
         </body>

@@ -2,17 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { MaterialCard } from '@/components/MaterialCard';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Grid, List, Search, Filter } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/ui/pagination";
+import { MaterialCard } from '@/components/MaterialCard';
+import SearchBar from '@/components/SearchBar';
+import Filters from '@/components/Filters';
+import { Grid, List } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState([]);
@@ -96,8 +93,6 @@ export default function MaterialsPage() {
     fetchMaterials();
   };
 
-  const toggleFilter = () => setShowFilters(!showFilters);
-
   const resetFilters = () => {
     setSelectedCategory('all');
     setSelectedSubcategory('all');
@@ -108,12 +103,6 @@ export default function MaterialsPage() {
     });
     setCurrentPage(1);
     fetchMaterials();
-  };
-
-  const stripHtmlTags = (html) => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
   };
 
   const paginatedMaterials = materials.slice(
@@ -129,25 +118,16 @@ export default function MaterialsPage() {
           <div className="flex flex-wrap gap-4 items-center mb-4">
             <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
               <TabsList>
-                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /> Grid</TabsTrigger>
-                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" /> Table</TabsTrigger>
+                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" /></TabsTrigger>
               </TabsList>
             </Tabs>
-            <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search materials..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4"
-                />
-              </div>
-              <Button type="submit">Search</Button>
-            </form>
-            <Button onClick={toggleFilter} variant="outline" className="md:hidden">
-              <Filter className="mr-2 h-4 w-4" />
+            <SearchBar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              handleSearch={handleSearch}
+            />
+            <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
               Filters
             </Button>
           </div>
@@ -177,7 +157,7 @@ export default function MaterialsPage() {
                     {paginatedMaterials.map((material) => (
                       <tr key={material.id} className="border-t">
                         <td className="p-2">{material.name}</td>
-                        <td className="p-2">{stripHtmlTags(material.description).substring(0, 100)}...</td>
+                        <td className="p-2">{material.description}</td>
                         <td className="p-2">{material.category}</td>
                         <td className="p-2">{material.subcategory}</td>
                         <td className="p-2">
@@ -200,61 +180,17 @@ export default function MaterialsPage() {
           </>
         )}
       </div>
-      <div className={`filters-container ${showFilters ? 'block' : 'hidden'} md:block md:ml-8 w-full md:w-1/4`}>
-        <div className="bg-card p-4 rounded-md shadow mb-4">
-          <h3 className="text-lg font-semibold mb-2">Filters</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-4 mb-4">
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  {Object.keys(categories).map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedCategory !== 'all' && (
-              <div>
-                <Label htmlFor="subcategory">Subcategory</Label>
-                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                  <SelectTrigger id="subcategory">
-                    <SelectValue placeholder="Select subcategory" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All subcategories</SelectItem>
-                    {categories[selectedCategory]?.map((subcategory) => (
-                      <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label className="text-base font-semibold">Search in:</Label>
-            <div className="flex flex-wrap gap-4">
-              {Object.entries(advancedSearch).map(([key, value]) => (
-                <Label key={key} className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={value}
-                    onCheckedChange={(checked) => setAdvancedSearch({...advancedSearch, [key]: checked})}
-                  />
-                  <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</span>
-                </Label>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-end mt-4">
-            <Button onClick={resetFilters} variant="outline" className="mr-2">Reset</Button>
-            <Button onClick={fetchMaterials}>Apply Filters</Button>
-          </div>
-        </div>
-      </div>
+      <Filters
+        categories={categories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        selectedSubcategory={selectedSubcategory}
+        setSelectedSubcategory={setSelectedSubcategory}
+        advancedSearch={advancedSearch}
+        setAdvancedSearch={setAdvancedSearch}
+        resetFilters={resetFilters}
+        showFilters={showFilters}
+      />
     </div>
   );
 }
