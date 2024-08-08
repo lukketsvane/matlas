@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
@@ -11,7 +11,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Home, Search, Library, PlusCircle, User, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
+import { Home, Search, Library, PlusCircle, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
 
 const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
 
@@ -19,10 +19,8 @@ export default function RootLayout({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
-  const router = useRouter();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -30,28 +28,14 @@ export default function RootLayout({ children }) {
     const handleChange = () => setIsDarkMode(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsSidebarOpen(window.innerWidth >= 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
 
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
-      window.removeEventListener('resize', checkMobile);
       subscription.unsubscribe();
     };
   }, [supabase.auth]);
-
-  useEffect(() => {
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    }
-  }, [pathname, isMobile]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -79,7 +63,7 @@ export default function RootLayout({ children }) {
                   ? "bg-primary text-primary-foreground" 
                   : "hover:bg-accent hover:text-accent-foreground"
               )}
-              onClick={() => isMobile && setIsSidebarOpen(false)}
+              onClick={() => setIsSidebarOpen(false)}
             >
               <Icon className="h-6 w-6" />
             </Link>
@@ -95,14 +79,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
-        <body className="flex h-screen bg-background text-foreground antialiased overflow-hidden">
-          <aside 
-            className={cn(
-              "bg-card text-card-foreground w-16 flex-shrink-0 fixed md:relative z-50 transition-all duration-300 ease-in-out",
-              isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-            )}
-          >
-            <div className="flex flex-col h-full justify-between py-4 overflow-y-auto">
+        <body className="flex h-screen overflow-hidden">
+          <aside className="sidebar">
+            <div className="flex flex-col h-full justify-between py-4">
               <div className="flex flex-col items-center space-y-4">
                 <Link href="/" className="mb-4">
                   <Image
@@ -110,10 +89,7 @@ export default function RootLayout({ children }) {
                     alt="MatLas Wiki Logo"
                     width={32}
                     height={32}
-                    className={cn(
-                      "transition-all duration-200",
-                      isDarkMode ? "filter invert" : ""
-                    )}
+                    className={isDarkMode ? "filter invert" : ""}
                   />
                 </Link>
                 <NavLink href="/" icon={Home} tooltip="Home" />
@@ -123,7 +99,30 @@ export default function RootLayout({ children }) {
                 {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
               </div>
               <div className="flex flex-col items-center space-y-4 mt-auto">
-                {user && <NavLink href="/profile" icon={User} tooltip="Profile" />}
+                {user && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link 
+                          href="/profile" 
+                          className="p-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+                          onClick={() => setIsSidebarOpen(false)}
+                        >
+                          <Image
+                            src={user.user_metadata.avatar_url || "/default-avatar.png"}
+                            alt="User Avatar"
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Profile</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 <NavLink href="/info" icon={Info} tooltip="Information" />
                 <Button onClick={toggleDarkMode} variant="ghost" size="icon">
                   {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -142,19 +141,19 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </aside>
-          <div className="flex-grow flex flex-col h-screen overflow-hidden">
+          <div className="flex-grow flex flex-col">
             <header className="bg-card text-card-foreground p-4 md:hidden">
               <Button onClick={toggleSidebar} variant="ghost">
                 <Menu className="h-6 w-6" />
               </Button>
             </header>
-            <main className="flex-grow overflow-auto p-6">
+            <main className="main-content">
               {children}
             </main>
           </div>
-          {isMobile && isSidebarOpen && (
+          {isSidebarOpen && (
             <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
               onClick={toggleSidebar}
             />
           )}
