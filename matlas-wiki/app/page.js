@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Search } from 'lucide-react';
+import { MaterialCard } from '@/components/MaterialCard';
 
 export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -103,39 +103,10 @@ export default function HomePage() {
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-  {randomMaterials.map((material) => (
-    <Card key={material.id} className="hover:shadow-lg transition-shadow flex flex-col">
-      <div className="h-32 relative">
-        {material.header_image ? (
-          <Image 
-            src={material.header_image}
-            alt={material.name}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-t-lg"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-            <span className="text-gray-400">No image</span>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col flex-grow">
-        <CardHeader className="p-3">
-          <CardTitle className="text-lg">{material.name}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-0 flex flex-col flex-grow">
-          <p className="text-sm text-muted-foreground mb-2 flex-grow">
-            {material.description ? `${material.description.substring(0, 60)}...` : 'No description available.'}
-          </p>
-          <Link href={`/materials/${material.slug}`} className="mt-auto">
-            <Button variant="outline" size="sm" className="w-full">View Details</Button>
-          </Link>
-        </CardContent>
-      </div>
-    </Card>
-  ))}
-</div>
+          {randomMaterials.map((material) => (
+            <MaterialCard key={material.id} material={material} />
+          ))}
+        </div>
       )}
 
       <h2 className="text-2xl font-bold mb-4">Material Categories</h2>

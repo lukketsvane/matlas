@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useSession } from '@supabase/auth-helpers-react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -12,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pagination } from "@/components/ui/pagination";
 import { Search, Filter, Grid, List } from 'lucide-react';
+import { MaterialCard } from '@/components/MaterialCard';
 
 export default function DiscoverPage() {
   const [materials, setMaterials] = useState([]);
@@ -24,25 +22,24 @@ export default function DiscoverPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [view, setView] = useState('grid');
-  const [currentPage, setCurrentPage] = useState(1);
   const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
   const [userProjects, setUserProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   const itemsPerPage = 12;
   const router = useRouter();
   const session = useSession();
   const supabase = createClientComponentClient();
+  const observerRef = useRef(null);
 
-  useEffect(() => {
-    fetchMaterials();
-    if (session) {
-      fetchUserProjects();
+  const fetchMaterials = useCallback(async (reset = false) => {
+    if (reset) {
+      setPage(0);
+      setMaterials([]);
     }
-  }, [session]);
-
-  const fetchMaterials = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -60,35 +57,69 @@ export default function DiscoverPage() {
         query = query.eq('subcategory', selectedSubcategory);
       }
 
-      const { data, error } = await query.order('name');
+      const { data, error } = await query
+        .order('name')
+        .range(page * itemsPerPage, (page + 1) * itemsPerPage - 1);
 
       if (error) throw error;
-      setMaterials(data);
+      
+      setMaterials(prev => reset ? data : [...prev, ...data]);
+      setHasMore(data.length === itemsPerPage);
 
-      const categoriesObj = data.reduce((acc, material) => {
-        if (material.category) {
-          if (!acc[material.category]) {
-            acc[material.category] = new Set();
+      if (reset) {
+        const categoriesObj = data.reduce((acc, material) => {
+          if (material.category) {
+            if (!acc[material.category]) {
+              acc[material.category] = new Set();
+            }
+            if (material.subcategory) {
+              acc[material.category].add(material.subcategory);
+            }
           }
-          if (material.subcategory) {
-            acc[material.category].add(material.subcategory);
-          }
-        }
-        return acc;
-      }, {});
+          return acc;
+        }, {});
 
-      Object.keys(categoriesObj).forEach(category => {
-        categoriesObj[category] = Array.from(categoriesObj[category]);
-      });
+        Object.keys(categoriesObj).forEach(category => {
+          categoriesObj[category] = Array.from(categoriesObj[category]);
+        });
 
-      setCategories(categoriesObj);
+        setCategories(categoriesObj);
+      }
     } catch (err) {
       console.error('Error fetching materials:', err);
       setError('Failed to fetch materials');
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, searchTerm, selectedCategory, selectedSubcategory, page, itemsPerPage]);
+
+  useEffect(() => {
+    fetchMaterials(true);
+    if (session) {
+      fetchUserProjects();
+    }
+  }, [session, fetchMaterials]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage(prevPage => prevPage + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, loading]);
 
   const fetchUserProjects = async () => {
     try {
@@ -106,8 +137,7 @@ export default function DiscoverPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    fetchMaterials();
+    fetchMaterials(true);
   };
 
   const handleAddToProject = (material) => {
@@ -134,11 +164,6 @@ export default function DiscoverPage() {
     }
   };
 
-  const paginatedMaterials = materials.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Discover Materials</h1>
@@ -162,7 +187,7 @@ export default function DiscoverPage() {
           </div>
           <Button type="submit">Search</Button>
         </form>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select value={selectedCategory} onValueChange={(value) => { setSelectedCategory(value); fetchMaterials(true); }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -174,7 +199,7 @@ export default function DiscoverPage() {
           </SelectContent>
         </Select>
         {selectedCategory !== 'all' && (
-          <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+          <Select value={selectedSubcategory} onValueChange={(value) => { setSelectedSubcategory(value); fetchMaterials(true); }}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Subcategory" />
             </SelectTrigger>
@@ -187,54 +212,58 @@ export default function DiscoverPage() {
           </Select>
         )}
       </div>
+
       {error && <p className="text-red-500">{error}</p>}
 
-      {!loading && !error && (
-        <div className={view === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}>
-          {paginatedMaterials.map((material) => (
-            <Card key={material.id} className={view === 'grid' ? "hover:shadow-lg transition-shadow" : "flex items-center"}>
-              {view === 'grid' && material.header_image && (
-                <div className="h-48 relative">
-                  <Image
-                    src={material.header_image}
-                    alt={material.name}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-t-lg"
-                  />
-                </div>
-              )}
-              <div className={view === 'grid' ? "" : "flex-1"}>
-                <CardHeader>
-                  <CardTitle className={view === 'grid' ? "text-xl" : "text-lg"}>{material.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {material.description ? `${material.description.substring(0, 100)}...` : 'No description available.'}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <Link href={`/materials/${material.slug}`}>
-                      <Button variant="outline" size="sm">View Details</Button>
-                    </Link>
+      {view === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {materials.map((material) => (
+            <MaterialCard 
+              key={material.id} 
+              material={material} 
+              onAddToProject={session ? () => handleAddToProject(material) : undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr>
+                <th className="text-left p-2">Name</th>
+                <th className="text-left p-2">Description</th>
+                <th className="text-left p-2">Category</th>
+                <th className="text-left p-2">Subcategory</th>
+                <th className="text-left p-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {materials.map((material) => (
+                <tr key={material.id} className="border-t">
+                  <td className="p-2">{material.name}</td>
+                  <td className="p-2">{material.description.substring(0, 100)}...</td>
+                  <td className="p-2">{material.category}</td>
+                  <td className="p-2">{material.subcategory}</td>
+                  <td className="p-2">
+                    <Button onClick={() => router.push(`/materials/${material.slug}`)} size="sm" variant="outline">
+                      View Details
+                    </Button>
                     {session && (
-                      <Button variant="ghost" size="sm" onClick={() => handleAddToProject(material)}>
+                      <Button onClick={() => handleAddToProject(material)} size="sm" variant="ghost" className="ml-2">
                         Add to Project
                       </Button>
                     )}
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
-          ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      <Pagination
-        className="mt-8"
-        currentPage={currentPage}
-        totalPages={Math.ceil(materials.length / itemsPerPage)}
-        onPageChange={setCurrentPage}
-      />
+      {loading && <p className="text-center mt-4">Loading materials...</p>}
+      
+      <div ref={observerRef} className="h-10 mt-4" />
 
       <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
         <DialogContent>
