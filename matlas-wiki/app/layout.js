@@ -1,4 +1,3 @@
-// app/layout.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +10,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Home, Search, Library, PlusCircle, User, LogOut, LogIn, Menu, Info, Sun, Moon } from 'lucide-react';
+import { Home, Search, Library, PlusCircle, User, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
 
 const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
 
@@ -84,6 +83,7 @@ export default function RootLayout({ children }) {
                 <NavLink href="/" icon={Home} tooltip="Home" />
                 <NavLink href="/discover" icon={Search} tooltip="Discover" />
                 <NavLink href="/materials" icon={Library} tooltip="Materials" />
+                {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
                 {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
               </nav>
             </div>

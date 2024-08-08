@@ -1,15 +1,17 @@
-// app/discover/page.js
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
-import Image from 'next/image'; // Import Image from next/image
+import Image from 'next/image';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ThumbsUp, MessageSquare } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, ThumbsUp, MessageSquare, FolderPlus } from 'lucide-react';
+import { useSession } from '@supabase/auth-helpers-react';
 
 export default function DiscoverPage() {
   const [materials, setMaterials] = useState([]);
@@ -17,8 +19,13 @@ export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState('random');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userProjects, setUserProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
 
   const supabase = createClientComponentClient();
+  const session = useSession();
 
   const fetchMaterials = useCallback(async () => {
     setLoading(true);
@@ -58,13 +65,55 @@ export default function DiscoverPage() {
     }
   }, [supabase, activeTab]);
 
+  const fetchUserProjects = useCallback(async () => {
+    if (!session) return;
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+      setUserProjects(data);
+    } catch (error) {
+      console.error('Error fetching user projects:', error);
+    }
+  }, [supabase, session]);
+
   useEffect(() => {
     fetchMaterials();
-  }, [fetchMaterials]);
+    if (session) {
+      fetchUserProjects();
+    }
+  }, [fetchMaterials, fetchUserProjects, session]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     fetchMaterials();
+  };
+
+  const handleAddToProject = (material) => {
+    setSelectedMaterial(material);
+    setIsAddToProjectOpen(true);
+  };
+
+  const saveMaterialToProject = async () => {
+    if (!selectedProject || !selectedMaterial) return;
+    try {
+      const { error } = await supabase
+        .from('project_materials')
+        .insert({ 
+          project_id: selectedProject, 
+          material_id: selectedMaterial.id 
+        });
+
+      if (error) throw error;
+      alert('Material saved to project successfully!');
+      setIsAddToProjectOpen(false);
+    } catch (error) {
+      console.error('Error saving material to project:', error);
+      alert('Failed to save material to project');
+    }
   };
 
   return (
@@ -99,24 +148,24 @@ export default function DiscoverPage() {
       {!loading && !error && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {materials.map((material) => (
-            <Link href={`/materials/${material.slug}`} key={material.id}>
-              <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
-                <CardContent className="p-0 flex flex-col h-full">
-                  <div className="relative pt-[100%] bg-gray-200">
-                    {material.header_image && (
-                      <Image
-                        src={material.header_image}
-                        alt={material.name}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-t-lg"
-                      />
-                    )}
-                  </div>
-                  <div className="p-2 flex flex-col flex-grow">
-                    <h3 className="font-semibold text-sm mb-1 truncate">{material.name}</h3>
-                    <p className="text-xs text-gray-500 mb-2 line-clamp-2 flex-grow">{material.description}</p>
-                    <div className="flex justify-between text-xs text-gray-400 mt-auto">
+            <Card key={material.id} className="hover:shadow-lg transition-shadow h-full flex flex-col">
+              <CardContent className="p-0 flex flex-col h-full">
+                <div className="relative pt-[100%] bg-gray-200">
+                  {material.header_image && (
+                    <Image
+                      src={material.header_image}
+                      alt={material.name}
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-t-lg"
+                    />
+                  )}
+                </div>
+                <div className="p-2 flex flex-col flex-grow">
+                  <h3 className="font-semibold text-sm mb-1 truncate">{material.name}</h3>
+                  <p className="text-xs text-gray-500 mb-2 line-clamp-2 flex-grow">{material.description}</p>
+                  <div className="flex justify-between items-center text-xs text-gray-400 mt-auto">
+                    <div className="flex space-x-2">
                       <span className="flex items-center">
                         <ThumbsUp className="w-3 h-3 mr-1" />
                         {material.likes || 0}
@@ -126,13 +175,37 @@ export default function DiscoverPage() {
                         {material.comments || 0}
                       </span>
                     </div>
+                    {session && (
+                      <Button variant="ghost" size="sm" onClick={() => handleAddToProject(material)}>
+                        <FolderPlus className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
+
+      <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add to Project</DialogTitle>
+          </DialogHeader>
+          <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a project" />
+            </SelectTrigger>
+            <SelectContent>
+              {userProjects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={saveMaterialToProject} className="mt-4">Save to Project</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
