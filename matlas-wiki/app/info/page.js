@@ -1,8 +1,7 @@
-// app/about/page.js
+// app/info/page.js
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,17 +48,10 @@ export default function AboutPage() {
                   MatLas Wiki is a comprehensive material property atlas, serving as an invaluable resource connecting industrial designers with engineers. Our platform functions as a Wikipedia-like database dedicated to materials, offering a vast library that covers a wide range of materials including metals, polymers, ceramics, and composites.
                 </p>
                 <p className="mb-4">
-                  Our mission is to provide a centralized, user-friendly platform where professionals and enthusiasts can explore, learn about, and compare various materials. Whether you're an engineer looking for the perfect material for your next project, a designer seeking inspiration, or a student learning about material properties, MatLas Wiki is your go-to resource.
+                  Our mission is to provide a centralized, user-friendly platform where professionals and enthusiasts can explore, learn about, and compare various materials. Whether you&apos;re an engineer looking for the perfect material for your next project, a designer seeking inspiration, or a student learning about material properties, MatLas Wiki is your go-to resource.
                 </p>
-                <Image 
-                  src="/placeholder.svg" 
-                  alt="MatLas Wiki Overview" 
-                  width={600} 
-                  height={400} 
-                  className="rounded-lg mx-auto my-6"
-                />
                 <p>
-                  Join us in our journey to make material information accessible, comprehensive, and collaborative. Together, we're building the future of material science knowledge sharing.
+                  Join us in our journey to make material information accessible, comprehensive, and collaborative. Together, we&apos;re building the future of material science knowledge sharing.
                 </p>
               </CardContent>
             </Card>
@@ -116,7 +108,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="mb-4">
-                  MatLas Wiki thrives on the collective knowledge and passion of its community. Here's how you can get involved:
+                  MatLas Wiki thrives on the collective knowledge and passion of its community. Here&apos;s how you can get involved:
                 </p>
                 <ul className="list-disc list-inside space-y-2 mb-4">
                   <li>Contribute your expertise by adding or editing material entries</li>
@@ -125,7 +117,7 @@ export default function AboutPage() {
                   <li>Follow us on social media for the latest updates and material science news</li>
                 </ul>
                 <p className="mb-4">
-                  By joining our community, you'll connect with professionals, researchers, and enthusiasts from around the world, all united by a passion for materials science.
+                  By joining our community, you&apos;ll connect with professionals, researchers, and enthusiasts from around the world, all united by a passion for materials science.
                 </p>
                 <Button>
                   Join Our Community <ArrowRight className="ml-2 h-4 w-4" />
@@ -143,17 +135,17 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="mb-4">
-                  MatLas Wiki is an open platform that relies on contributions from experts like you. Here's how you can help expand and improve our material database:
+                  MatLas Wiki is an open platform that relies on contributions from experts like you. Here&apos;s how you can help expand and improve our material database:
                 </p>
                 <ol className="list-decimal list-inside space-y-2 mb-4">
                   <li>Create an account and verify your email</li>
                   <li>Browse existing entries to familiarize yourself with our format</li>
-                  <li>Click on "Add Material" to create a new entry or "Edit" to improve an existing one</li>
+                  <li>Click on &quot;Add Material&quot; to create a new entry or &quot;Edit&quot; to improve an existing one</li>
                   <li>Provide accurate, well-sourced information and cite your references</li>
                   <li>Submit your changes for review by our expert moderators</li>
                 </ol>
                 <p className="mb-4">
-                  We also welcome contributions to our codebase. If you're a developer interested in improving MatLas Wiki's functionality, check out our GitHub repository:
+                  We also welcome contributions to our codebase. If you&apos;re a developer interested in improving MatLas Wiki&apos;s functionality, check out our GitHub repository:
                 </p>
                 <Link href="https://github.com/matlas-wiki/matlas" className="text-primary hover:underline">
                   github.com/matlas-wiki/matlas
