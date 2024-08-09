@@ -5,17 +5,28 @@ import os
 import re
 from dotenv import load_dotenv
 from supabase import create_client
+from prompt_toolkit.shortcuts import checkboxlist_dialog, input_dialog
+from rich.console import Console
+from rich.logging import RichHandler
+import logging
 
 load_dotenv()
 client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 supabase = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
+
+console = Console()
+logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHandler(console=console, rich_tracebacks=True)])
+logger = logging.getLogger("rich")
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+COLLECTIONS_DIR = os.path.join(SCRIPT_DIR, 'collections')
 
 def generate_material(name, category, subcategory):
     prompt = f"""Generate a detailed and creative material entry for {name} ({category}, {subcategory}). Include extensive information and be more expansive in your descriptions. Follow this format, but feel free to add more properties and usage examples as appropriate for the specific wood:
 
     {{
         "name": "{name}",
-        "description": "A comprehensive description of the wood, including its key characteristics, origin, appearance, and notable features.",
+        "description": "A comprehensive description of the material, including its key characteristics, origin, appearance, and notable features.",
         "properties": {{
             "Density": "Value in g/cm³",
             "Janka Hardness": "Value in lbf (pounds-force)",
@@ -44,9 +55,9 @@ def generate_material(name, category, subcategory):
             {{"date": "2024-06-15", "editor": "AI Assistant", "changes": "Comprehensive update with expanded information."}}
         ],
         "related_materials": [
-            {{"name": "Related Wood 1", "description": "Detailed comparison or relation to the main wood."}},
-            {{"name": "Related Wood 2", "description": "Detailed comparison or relation to the main wood."}},
-            {{"name": "Related Wood 3", "description": "Detailed comparison or relation to the main wood."}}
+            {{"name": "Related Material 1", "description": "Detailed comparison or relation to the main material."}},
+            {{"name": "Related Material 2", "description": "Detailed comparison or relation to the main material."}},
+            {{"name": "Related Material 3", "description": "Detailed comparison or relation to the main material."}}
         ]
     }}
 
@@ -86,24 +97,41 @@ def generate_material(name, category, subcategory):
     })
     return material
 
+def select_files():
+    files = [f for f in os.listdir(COLLECTIONS_DIR) if f.endswith('.json')]
+    return checkboxlist_dialog(title="Select JSON files to process", text="Use space to select, 'A' to select all, and Enter to confirm:", values=[(f, f) for f in files]).run() if files else []
+
 def main():
-    with open('wood.json', 'r') as f:
-        materials_data = json.load(f)
-    
-    for category, subcategories in materials_data.items():
-        for subcategory, names in subcategories.items():
-            for name in names:
-                material = generate_material(name, category, subcategory)
-                if material:
-                    # Use upsert with on_conflict parameter to replace existing entries
-                    result = supabase.table('materials').upsert(
-                        material,
-                        on_conflict='slug'  # Using 'slug' instead of 'name'
-                    ).execute()
-                    print(f"{'Updated' if result.data else 'Failed to update'} {name}")
-                else:
-                    print(f"Failed to generate material for: {name}")
-                time.sleep(2)
+    selected_files = select_files()
+    if not selected_files:
+        logger.info("No files selected. Exiting.")
+        return
+
+    num_materials = int(input_dialog(title="Number of Materials", text="Enter the number of materials to generate (between 10 and 100):").run())
+    if not (10 <= num_materials <= 100):
+        logger.error("Please enter a number between 10 and 100.")
+        return
+
+    for file in selected_files:
+        file_path = os.path.join(COLLECTIONS_DIR, file)
+        with open(file_path, 'r') as f:
+            materials_data = json.load(f)
+        
+        for category, subcategories in materials_data.items():
+            for subcategory, names in subcategories.items():
+                for i, name in enumerate(names):
+                    if i >= num_materials:
+                        break
+                    material = generate_material(name, category, subcategory)
+                    if material:
+                        result = supabase.table('materials').upsert(
+                            material,
+                            on_conflict='slug'  # Using 'slug' instead of 'name'
+                        ).execute()
+                        print(f"{'Updated' if result.data else 'Failed to update'} {name}")
+                    else:
+                        print(f"Failed to generate material for: {name}")
+                    time.sleep(2)
 
 if __name__ == "__main__":
     main()

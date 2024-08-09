@@ -7,6 +7,7 @@ files_to_combine = [
     "./matlas-wiki/lib/supabaseClient.js",
     "./matlas-wiki/app/materials/page.js",
     "./matlas-wiki/app/profile/page.js",
+    "./matlas-wiki/components/MaterialCard.js",
     "./matlas-wiki/app/layout.js",
     "./matlas-wiki/app/page.js"
 ]

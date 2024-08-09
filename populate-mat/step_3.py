@@ -30,7 +30,7 @@ def generate_material_entry(name, category, subcategory):
     prompt = PROMPT_TEMPLATE.format(name=name, category=category, subcategory=subcategory)
     response = client.messages.create(model="claude-3-5-sonnet-20240620", max_tokens=4086, messages=[{"role": "user", "content": prompt}])
     try:
-        return {"description": response.content[0].text, "name": name, "category": category, "subcategory": subcategory, "slug": name.lower().replace(' ', '-')}
+        return {"description": response['content'], "name": name, "category": category, "subcategory": subcategory, "slug": name.lower().replace(' ', '-')}
     except Exception as e:
         logger.error(f"Error generating entry for {name}: {e}")
         return None
@@ -47,9 +47,18 @@ def process_file(file_path, csv_writer, progress):
     with open(file_path, 'r') as f:
         data = json.load(f)
     
-    category, subcategory = os.path.basename(file_path).split('_')
-    category, subcategory = category.replace('_', ' ').title(), subcategory.split('.')[0].replace('_', ' ').title()
+    # Safely extract category and subcategory from the filename
+    file_name = os.path.basename(file_path)
+    base_name = os.path.splitext(file_name)[0]
+    parts = base_name.split('_')
     
+    if len(parts) < 2:
+        logger.error(f"Invalid file name format: {file_name}")
+        return 0, 0
+    
+    category = parts[0].replace('_', ' ').title()
+    subcategory = ' '.join(parts[1:]).replace('_', ' ').title()
+
     materials = data[list(data.keys())[0]]
     new_materials = skipped_materials = 0
 
