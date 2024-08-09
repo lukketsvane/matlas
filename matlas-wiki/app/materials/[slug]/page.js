@@ -139,16 +139,19 @@ export default function MaterialPage({ params }) {
   return (
     <div className="max-w-screen-xl mx-auto">
       {material.header_image && (
-        <div className="w-full h-64 relative mb-4">
-          <Image 
-            src={material.header_image}
-            alt={material.name}
-            layout="fill"
-            objectFit="cover"
-            priority
-          />
-        </div>
-      )}
+  <div className="w-full h-64 relative mb-4 sm:px-4">
+    <div className="absolute inset-0 sm:static">
+      <Image 
+        src={material.header_image}
+        alt={material.name}
+        layout="fill"
+        objectFit="cover"
+        priority
+        className="sm:rounded-lg"
+      />
+    </div>
+  </div>
+)}
       <div className="px-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-normal">{material.name}</h1>

@@ -9,6 +9,16 @@
     "Acrylonitrile Butadiene Styrene (ABS)",
     "Polymethyl Methacrylate (PMMA)",
     "Polyamide (Nylon)",
-    "Polycarbonate (PC)"
+    "Polycarbonate (PC)",
+    "Polytetrafluoroethylene (PTFE)",
+    "Polyetheretherketone (PEEK)",
+    "Polyoxymethylene (POM)",
+    "Polybutylene Terephthalate (PBT)",
+    "Polylactic Acid (PLA)",
+    "Polyethylene Naphthalate (PEN)",
+    "Thermoplastic Polyurethane (TPU)",
+    "Ethylene Vinyl Acetate (EVA)",
+    "Polyether Sulfone (PES)",
+    "Polyphenylene Sulfide (PPS)"
   ]
 }

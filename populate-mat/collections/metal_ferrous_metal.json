@@ -29,6 +29,16 @@
     "Elinvar",
     "Spring Steel",
     "Transformer Steel",
-    "Armco Iron"
+    "Armco Iron",
+    "HSLA Steel",
+    "Nickel Steel",
+    "Corten Steel",
+    "Permalloy",
+    "Mild Steel",
+    "Austempered Ductile Iron",
+    "Compacted Graphite Iron",
+    "White Cast Iron",
+    "Pearlitic Steel",
+    "Ferrite Steel"
   ]
 }

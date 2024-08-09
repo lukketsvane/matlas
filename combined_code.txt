@@ -105,7 +105,6 @@ export default async function handler(req, res) {
 
 /./matlas-wiki/app/materials/[slug]/edit/page.js
 'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -506,16 +505,19 @@ export default function MaterialPage({ params }) {
   return (
     <div className="max-w-screen-xl mx-auto">
       {material.header_image && (
-        <div className="w-full h-64 relative mb-4">
-          <Image 
-            src={material.header_image}
-            alt={material.name}
-            layout="fill"
-            objectFit="cover"
-            priority
-          />
-        </div>
-      )}
+  <div className="w-full h-64 relative mb-4 sm:px-4">
+    <div className="absolute inset-0 sm:static">
+      <Image 
+        src={material.header_image}
+        alt={material.name}
+        layout="fill"
+        objectFit="cover"
+        priority
+        className="sm:rounded-lg"
+      />
+    </div>
+  </div>
+)}
       <div className="px-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-normal">{material.name}</h1>
@@ -646,15 +648,16 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
-import { Pagination } from "@/components/ui/pagination";
 import { MaterialCard } from '@/components/MaterialCard';
 import SearchBar from '@/components/SearchBar';
 import Filters from '@/components/Filters';
 import { Grid, List } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState([]);
+  const [filteredMaterials, setFilteredMaterials] = useState([]);
   const [categories, setCategories] = useState({});
   const [view, setView] = useState('grid');
   const [loading, setLoading] = useState(true);
@@ -668,8 +671,6 @@ export default function MaterialsPage() {
     inProperties: false,
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
 
   const supabase = createClientComponentClient();
 
@@ -677,25 +678,10 @@ export default function MaterialsPage() {
     setLoading(true);
     setError(null);
     try {
-      let query = supabase.from('materials').select('*');
-
-      if (searchTerm) {
-        const searchConditions = [];
-        if (advancedSearch.inTitle) searchConditions.push(`name.ilike.%${searchTerm}%`);
-        if (advancedSearch.inDescription) searchConditions.push(`description.ilike.%${searchTerm}%`);
-        if (advancedSearch.inProperties) searchConditions.push(`properties::text.ilike.%${searchTerm}%`);
-        query = query.or(searchConditions.join(','));
-      }
-
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-
-      if (selectedSubcategory !== 'all') {
-        query = query.eq('subcategory', selectedSubcategory);
-      }
-
-      const { data, error } = await query.order('name', { ascending: true });
+      const { data, error } = await supabase
+        .from('materials')
+        .select('*')
+        .order('name', { ascending: true });
 
       if (error) throw error;
       setMaterials(data);
@@ -713,7 +699,7 @@ export default function MaterialsPage() {
       }, {});
 
       Object.keys(categoriesObj).forEach(category => {
-        categoriesObj[category] = Array.from(categoriesObj[category]);
+        categoriesObj[category] = Array.from(categoriesObj[category]).sort();
       });
 
       setCategories(categoriesObj);
@@ -723,16 +709,41 @@ export default function MaterialsPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, searchTerm, selectedCategory, selectedSubcategory, advancedSearch]);
+  }, [supabase]);
 
   useEffect(() => {
     fetchMaterials();
-  }, [fetchMaterials]);
+
+    const subscription = supabase
+      .channel('materials_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, (payload) => {
+        console.log('Change received!', payload);
+        fetchMaterials();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [fetchMaterials, supabase]);
+
+  useEffect(() => {
+    const filtered = materials.filter(material => {
+      const categoryMatch = selectedCategory === 'all' || material.category === selectedCategory;
+      const subcategoryMatch = selectedSubcategory === 'all' || material.subcategory === selectedSubcategory;
+      const searchMatch = (
+        (advancedSearch.inTitle && material.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (advancedSearch.inDescription && material.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (advancedSearch.inProperties && JSON.stringify(material.properties).toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      return categoryMatch && subcategoryMatch && (searchTerm === '' || searchMatch);
+    });
+    setFilteredMaterials(filtered);
+  }, [materials, selectedCategory, selectedSubcategory, searchTerm, advancedSearch]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    fetchMaterials();
+    // Filtering is now handled in the useEffect above
   };
 
   const resetFilters = () => {
@@ -743,14 +754,8 @@ export default function MaterialsPage() {
       inDescription: false,
       inProperties: false,
     });
-    setCurrentPage(1);
-    fetchMaterials();
+    setSearchTerm('');
   };
-
-  const paginatedMaterials = materials.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   return (
     <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row">
@@ -760,8 +765,8 @@ export default function MaterialsPage() {
           <div className="flex flex-wrap gap-4 items-center mb-4">
             <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
               <TabsList>
-                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /></TabsTrigger>
-                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" />Grid</TabsTrigger>
+                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" />Table</TabsTrigger>
               </TabsList>
             </Tabs>
             <SearchBar
@@ -770,17 +775,27 @@ export default function MaterialsPage() {
               handleSearch={handleSearch}
             />
             <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
-              Filters
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
             </Button>
           </div>
         </div>
         {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-        {!loading && !error && (
-          <>
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <AnimatePresence>
             {view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedMaterials.map((material) => (
-                  <MaterialCard key={material.id} material={material} />
+                {filteredMaterials.map((material) => (
+                  <motion.div
+                    key={material.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <MaterialCard material={material} />
+                  </motion.div>
                 ))}
               </div>
             ) : (
@@ -796,8 +811,15 @@ export default function MaterialsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedMaterials.map((material) => (
-                      <tr key={material.id} className="border-t">
+                    {filteredMaterials.map((material) => (
+                      <motion.tr
+                        key={material.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-t"
+                      >
                         <td className="p-2">{material.name}</td>
                         <td className="p-2">{material.description}</td>
                         <td className="p-2">{material.category}</td>
@@ -807,19 +829,13 @@ export default function MaterialsPage() {
                             <Button size="sm" variant="outline">View Details</Button>
                           </Link>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-            <Pagination
-              className="mt-8"
-              currentPage={currentPage}
-              totalPages={Math.ceil(materials.length / itemsPerPage)}
-              onPageChange={setCurrentPage}
-            />
-          </>
+          </AnimatePresence>
         )}
       </div>
       <Filters
@@ -836,7 +852,6 @@ export default function MaterialsPage() {
     </div>
   );
 }
-
 
 /./matlas-wiki/app/profile/page.js
 'use client';
@@ -1108,17 +1123,67 @@ function ProfileSkeleton() {
 /./matlas-wiki/components/MaterialCard.js
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSession } from '@supabase/auth-helpers-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-export function MaterialCard({ material, onAddToProject }) {
+export function MaterialCard({ material }) {
+  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
+  const [userProjects, setUserProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const session = useSession();
+  const supabase = createClientComponentClient();
+
   const stripHtmlTags = (html) => {
     const tmp = document.createElement("DIV");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
+  };
+
+  const fetchUserProjects = async () => {
+    if (!session) return;
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+      setUserProjects(data);
+    } catch (error) {
+      console.error('Error fetching user projects:', error);
+    }
+  };
+
+  const handleAddToProject = async () => {
+    setIsAddToProjectOpen(true);
+    await fetchUserProjects();
+  };
+
+  const saveMaterialToProject = async () => {
+    if (!selectedProject) return;
+    try {
+      const { error } = await supabase
+        .from('project_materials')
+        .insert({ 
+          project_id: selectedProject, 
+          material_id: material.id 
+        });
+
+      if (error) throw error;
+      setIsAddToProjectOpen(false);
+      alert('Material added to project successfully!');
+    } catch (error) {
+      console.error('Error saving material to project:', error);
+      alert('Failed to add material to project');
+    }
   };
 
   return (
@@ -1150,10 +1215,30 @@ export function MaterialCard({ material, onAddToProject }) {
             <Link href={`/materials/${material.slug}`}>
               <Button variant="outline" size="sm">View Details</Button>
             </Link>
-            {onAddToProject && (
-              <Button variant="ghost" size="icon" onClick={() => onAddToProject(material)}>
-                <Plus className="h-4 w-4" />
-              </Button>
+            {session && (
+              <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={handleAddToProject}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add to Project</DialogTitle>
+                  </DialogHeader>
+                  <Select value={selectedProject} onValueChange={setSelectedProject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {userProjects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={saveMaterialToProject}>Save to Project</Button>
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </CardContent>
@@ -1161,7 +1246,6 @@ export function MaterialCard({ material, onAddToProject }) {
     </Card>
   );
 }
-
 
 /./matlas-wiki/app/layout.js
 // app/layout.tsx

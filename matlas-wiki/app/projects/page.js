@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Trash2, Edit, FolderOpen } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -33,25 +34,32 @@ export default function ProjectsPage() {
     }
   }, [session, router]);
 
-async function fetchProjects() {
-  try {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
+  async function fetchProjects() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    setProjects(data);
-  } catch (error) {
-    setError('Failed to fetch projects');
-    console.error('Error:', error);
-  } finally {
-    setLoading(false);
+      if (error) throw error;
+      setProjects(data);
+    } catch (error) {
+      setError('Failed to fetch projects');
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch projects. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
-}
-  async function createProject() {
+
+  async function createProject(e) {
+    e.preventDefault();
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -65,13 +73,22 @@ async function fetchProjects() {
       setProjects([data, ...projects]);
       setNewProject({ name: '', description: '' });
       setIsNewProjectDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Project created successfully!",
+      });
     } catch (error) {
-      setError('Failed to create project');
       console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
+      });
     }
   }
 
-  async function updateProject() {
+  async function updateProject(e) {
+    e.preventDefault();
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -84,9 +101,17 @@ async function fetchProjects() {
       setProjects(projects.map(p => p.id === data.id ? data : p));
       setEditingProject(null);
       setIsEditProjectDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Project updated successfully!",
+      });
     } catch (error) {
-      setError('Failed to update project');
       console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update project. Please try again.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -99,9 +124,17 @@ async function fetchProjects() {
 
       if (error) throw error;
       setProjects(projects.filter(project => project.id !== id));
+      toast({
+        title: "Success",
+        description: "Project deleted successfully!",
+      });
     } catch (error) {
-      setError('Failed to delete project');
       console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete project. Please try again.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -118,11 +151,11 @@ async function fetchProjects() {
               <Plus className="mr-2 h-4 w-4" /> New Project
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Create New Project</DialogTitle>
             </DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); createProject(); }} className="space-y-4">
+            <form onSubmit={createProject} className="space-y-4">
               <Input
                 placeholder="Project Name"
                 value={newProject.name}
@@ -178,12 +211,12 @@ async function fetchProjects() {
       </Card>
 
       <Dialog open={isEditProjectDialogOpen} onOpenChange={setIsEditProjectDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
           </DialogHeader>
           {editingProject && (
-            <form onSubmit={(e) => { e.preventDefault(); updateProject(); }} className="space-y-4">
+            <form onSubmit={updateProject} className="space-y-4">
               <Input
                 placeholder="Project Name"
                 value={editingProject.name}

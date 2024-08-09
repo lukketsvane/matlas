@@ -4,15 +4,16 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
-import { Pagination } from "@/components/ui/pagination";
 import { MaterialCard } from '@/components/MaterialCard';
 import SearchBar from '@/components/SearchBar';
 import Filters from '@/components/Filters';
 import { Grid, List } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState([]);
+  const [filteredMaterials, setFilteredMaterials] = useState([]);
   const [categories, setCategories] = useState({});
   const [view, setView] = useState('grid');
   const [loading, setLoading] = useState(true);
@@ -26,8 +27,6 @@ export default function MaterialsPage() {
     inProperties: false,
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
 
   const supabase = createClientComponentClient();
 
@@ -35,25 +34,10 @@ export default function MaterialsPage() {
     setLoading(true);
     setError(null);
     try {
-      let query = supabase.from('materials').select('*');
-
-      if (searchTerm) {
-        const searchConditions = [];
-        if (advancedSearch.inTitle) searchConditions.push(`name.ilike.%${searchTerm}%`);
-        if (advancedSearch.inDescription) searchConditions.push(`description.ilike.%${searchTerm}%`);
-        if (advancedSearch.inProperties) searchConditions.push(`properties::text.ilike.%${searchTerm}%`);
-        query = query.or(searchConditions.join(','));
-      }
-
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-
-      if (selectedSubcategory !== 'all') {
-        query = query.eq('subcategory', selectedSubcategory);
-      }
-
-      const { data, error } = await query.order('name', { ascending: true });
+      const { data, error } = await supabase
+        .from('materials')
+        .select('*')
+        .order('name', { ascending: true });
 
       if (error) throw error;
       setMaterials(data);
@@ -71,7 +55,7 @@ export default function MaterialsPage() {
       }, {});
 
       Object.keys(categoriesObj).forEach(category => {
-        categoriesObj[category] = Array.from(categoriesObj[category]);
+        categoriesObj[category] = Array.from(categoriesObj[category]).sort();
       });
 
       setCategories(categoriesObj);
@@ -81,16 +65,41 @@ export default function MaterialsPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, searchTerm, selectedCategory, selectedSubcategory, advancedSearch]);
+  }, [supabase]);
 
   useEffect(() => {
     fetchMaterials();
-  }, [fetchMaterials]);
+
+    const subscription = supabase
+      .channel('materials_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, (payload) => {
+        console.log('Change received!', payload);
+        fetchMaterials();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [fetchMaterials, supabase]);
+
+  useEffect(() => {
+    const filtered = materials.filter(material => {
+      const categoryMatch = selectedCategory === 'all' || material.category === selectedCategory;
+      const subcategoryMatch = selectedSubcategory === 'all' || material.subcategory === selectedSubcategory;
+      const searchMatch = (
+        (advancedSearch.inTitle && material.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (advancedSearch.inDescription && material.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (advancedSearch.inProperties && JSON.stringify(material.properties).toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      return categoryMatch && subcategoryMatch && (searchTerm === '' || searchMatch);
+    });
+    setFilteredMaterials(filtered);
+  }, [materials, selectedCategory, selectedSubcategory, searchTerm, advancedSearch]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    fetchMaterials();
+    // Filtering is now handled in the useEffect above
   };
 
   const resetFilters = () => {
@@ -101,14 +110,8 @@ export default function MaterialsPage() {
       inDescription: false,
       inProperties: false,
     });
-    setCurrentPage(1);
-    fetchMaterials();
+    setSearchTerm('');
   };
-
-  const paginatedMaterials = materials.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   return (
     <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row">
@@ -118,8 +121,8 @@ export default function MaterialsPage() {
           <div className="flex flex-wrap gap-4 items-center mb-4">
             <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
               <TabsList>
-                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" /></TabsTrigger>
-                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" />Grid</TabsTrigger>
+                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" />Table</TabsTrigger>
               </TabsList>
             </Tabs>
             <SearchBar
@@ -128,17 +131,27 @@ export default function MaterialsPage() {
               handleSearch={handleSearch}
             />
             <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
-              Filters
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
             </Button>
           </div>
         </div>
         {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-        {!loading && !error && (
-          <>
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <AnimatePresence>
             {view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedMaterials.map((material) => (
-                  <MaterialCard key={material.id} material={material} />
+                {filteredMaterials.map((material) => (
+                  <motion.div
+                    key={material.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <MaterialCard material={material} />
+                  </motion.div>
                 ))}
               </div>
             ) : (
@@ -154,8 +167,15 @@ export default function MaterialsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedMaterials.map((material) => (
-                      <tr key={material.id} className="border-t">
+                    {filteredMaterials.map((material) => (
+                      <motion.tr
+                        key={material.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-t"
+                      >
                         <td className="p-2">{material.name}</td>
                         <td className="p-2">{material.description}</td>
                         <td className="p-2">{material.category}</td>
@@ -165,19 +185,13 @@ export default function MaterialsPage() {
                             <Button size="sm" variant="outline">View Details</Button>
                           </Link>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-            <Pagination
-              className="mt-8"
-              currentPage={currentPage}
-              totalPages={Math.ceil(materials.length / itemsPerPage)}
-              onPageChange={setCurrentPage}
-            />
-          </>
+          </AnimatePresence>
         )}
       </div>
       <Filters

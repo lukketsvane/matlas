@@ -25,11 +25,11 @@ def generate_material_names(category, subcategory, count):
     return None
 
 def main():
-    with open('materials.json', 'r') as f:
+    with open('categories.json', 'r') as f:
         categories = json.load(f)
     
     count = int(input("Enter the number of materials to generate per subcategory (10-200): "))
-    count = max(10, min(200, count))  # Ensure count is between 10 and 200
+    count = max(10, min(200, count))  
     
     os.makedirs('./collections', exist_ok=True)
 
@@ -43,7 +43,7 @@ def main():
                 print(f"Generated {len(material_names)} materials for {category} - {subcategory}")
             else:
                 print(f"Failed to generate materials for {category} - {subcategory}")
-            time.sleep(2)  # To avoid hitting rate limits
+            time.sleep(2)  
 
 if __name__ == "__main__":
     main()
