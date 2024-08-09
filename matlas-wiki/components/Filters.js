@@ -9,17 +9,16 @@ import { Filter } from 'lucide-react';
 
 export default function Filters({ categories, selectedCategory, setSelectedCategory, selectedSubcategory, setSelectedSubcategory, advancedSearch, setAdvancedSearch, resetFilters, applyFilters }) {
   const [showFilters, setShowFilters] = useState(false);
-  
+
   return (
     <div className={`filters-container ${showFilters ? 'block' : 'hidden'} md:block md:ml-8 w-full md:w-1/4`}>
       <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
-        <Filter className="mr-2 h-4 w-4" />
-        Filters
+        <Filter className="mr-2 h-4 w-4" /> Filters
       </Button>
-      <div className="bg-card p-4 rounded-md shadow mb-4">
+      <div className="bg-card p-4 rounded-md shadow mb-4 relative">
         <h3 className="text-lg font-semibold mb-2">Filters</h3>
         <div className="grid gap-4 mb-4">
-          <div>
+          <div className="relative z-20">
             <Label htmlFor="category">Category</Label>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger id="category">
@@ -27,14 +26,14 @@ export default function Filters({ categories, selectedCategory, setSelectedCateg
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All categories</SelectItem>
-                {Object.keys(categories).map((category) => (
+                {Object.keys(categories).map(category => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           {selectedCategory !== 'all' && (
-            <div>
+            <div className="relative z-20">
               <Label htmlFor="subcategory">Subcategory</Label>
               <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
                 <SelectTrigger id="subcategory">
@@ -42,7 +41,7 @@ export default function Filters({ categories, selectedCategory, setSelectedCateg
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All subcategories</SelectItem>
-                  {categories[selectedCategory]?.map((subcategory) => (
+                  {categories[selectedCategory]?.map(subcategory => (
                     <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
                   ))}
                 </SelectContent>
@@ -57,9 +56,9 @@ export default function Filters({ categories, selectedCategory, setSelectedCateg
               <Label key={key} className="flex items-center space-x-2">
                 <Checkbox
                   checked={value}
-                  onCheckedChange={(checked) => setAdvancedSearch({ ...advancedSearch, [key]: checked })}
+                  onCheckedChange={checked => setAdvancedSearch({ ...advancedSearch, [key]: checked })}
                 />
-                <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</span>
+                <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
               </Label>
             ))}
           </div>
@@ -68,9 +67,10 @@ export default function Filters({ categories, selectedCategory, setSelectedCateg
           <Button onClick={resetFilters} variant="outline" className="mr-2">
             <Filter className="mr-2 h-4 w-4" />
           </Button>
-          <Button onClick={applyFilters}>Filters</Button>
+          <Button onClick={applyFilters}>Apply Filters</Button>
         </div>
       </div>
     </div>
   );
 }
+	

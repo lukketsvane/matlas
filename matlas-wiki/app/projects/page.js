@@ -33,25 +33,24 @@ export default function ProjectsPage() {
     }
   }, [session, router]);
 
-  async function fetchProjects() {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
+async function fetchProjects() {
+  try {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProjects(data);
-    } catch (error) {
-      setError('Failed to fetch projects');
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
+    if (error) throw error;
+    setProjects(data);
+  } catch (error) {
+    setError('Failed to fetch projects');
+    console.error('Error:', error);
+  } finally {
+    setLoading(false);
   }
-
+}
   async function createProject() {
     try {
       const { data, error } = await supabase
@@ -106,6 +105,7 @@ export default function ProjectsPage() {
     }
   }
 
+  if (loading) return <div className="container mx-auto px-4 py-8">Loading...</div>;
   if (error) return <div className="container mx-auto px-4 py-8">Error: {error}</div>;
 
   return (
