@@ -13,6 +13,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, FolderPlus } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+
+const MarkdownComponents = {
+  h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mt-6 mb-4" {...props} />,
+  h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-5 mb-3" {...props} />,
+  h3: ({ node, ...props }) => <h3 className="text-xl font-medium mt-4 mb-2" {...props} />,
+  ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-4" {...props} />,
+  ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-4" {...props} />,
+  li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+  p: ({ node, ...props }) => <p className="mb-4" {...props} />,
+  a: ({ node, ...props }) => <a className="text-blue-500 hover:underline" {...props} />,
+  strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
+  em: ({ node, ...props }) => <em className="italic" {...props} />,
+  blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4" {...props} />,
+  code: ({ node, inline, ...props }) => 
+    inline ? (
+      <code className="bg-gray-100 rounded px-1 py-0.5" {...props} />
+    ) : (
+      <pre className="bg-gray-100 rounded p-3 overflow-x-auto">
+        <code {...props} />
+      </pre>
+    ),
+  table: ({ node, ...props }) => <table className="border-collapse border border-gray-300 my-4" {...props} />,
+  th: ({ node, ...props }) => <th className="border border-gray-300 px-4 py-2 bg-gray-100" {...props} />,
+  td: ({ node, ...props }) => <td className="border border-gray-300 px-4 py-2" {...props} />,
+};
 
 export default function MaterialPage({ params }) {
   const router = useRouter();
@@ -161,7 +187,9 @@ export default function MaterialPage({ params }) {
               </Dialog>
             )}
           </div>
-          <div className="prose max-w-none mb-6" dangerouslySetInnerHTML={{ __html: material.description }} />
+          <div className="prose max-w-none mb-6">
+            <ReactMarkdown components={MarkdownComponents}>{material.description}</ReactMarkdown>
+          </div>
           
           <Tabs defaultValue="properties">
             <TabsList>
@@ -197,7 +225,7 @@ export default function MaterialPage({ params }) {
                   {material.usage_examples && material.usage_examples.map((example, index) => (
                     <div key={index} className="mb-4">
                       <h3 className="text-lg font-semibold">{example.title}</h3>
-                      <p>{example.description}</p>
+                      <ReactMarkdown components={MarkdownComponents}>{example.description}</ReactMarkdown>
                     </div>
                   ))}
                 </CardContent>
@@ -278,4 +306,4 @@ export default function MaterialPage({ params }) {
       </div>
     </div>
   );
-}	
+}

@@ -251,7 +251,7 @@ export default function EditMaterialPage({ params }) {
         <Button variant="outline" onClick={() => router.push(`/materials/${slug === 'new' ? '' : slug}`)}>Cancel</Button>
         <Button onClick={handleSave} disabled={loading}>
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save÷
+          Save
         </Button>
       </div>
     </div>

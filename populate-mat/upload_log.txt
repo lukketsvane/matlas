@@ -1,0 +1,2 @@
+EXCEPTION: An error occurred with material: Example Material, Error: 'APIResponse[~_ReturnT]' object has no attribute 'status_code'
+EXCEPTION: An error occurred with material: Example Material, Error: {'code': '23505', 'details': None, 'hint': None, 'message': 'duplicate key value violates unique constraint "materials_slug_key"'}

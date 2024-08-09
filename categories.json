@@ -1,0 +1,95 @@
+{
+    "Materials": {
+      "Metals": {
+        "Ferrous Metals": {
+          "Steels": [
+            "Carbon Steels",
+            "Alloy Steels",
+            "Stainless Steels",
+            "Tool Steels"
+          ],
+          "Cast Irons": [
+            "Gray Iron",
+            "Ductile Iron",
+            "Malleable Iron",
+            "White Iron"
+          ]
+        },
+        "Non-Ferrous Metals": {
+          "Aluminum Alloys": [],
+          "Copper Alloys": [],
+          "Nickel Alloys": [],
+          "Titanium Alloys": [],
+          "Zinc Alloys": [],
+          "Precious Metals": []
+        }
+      },
+      "Polymers": {
+        "Thermoplastics": {
+          "Commodity Thermoplastics": [],
+          "Engineering Thermoplastics": [],
+          "High-Performance Thermoplastics": []
+        },
+        "Thermosets": {
+          "Epoxies": [],
+          "Polyesters": [],
+          "Phenolics": [],
+          "Polyurethanes": []
+        }
+      },
+      "Ceramics": {
+        "Oxide Ceramics": [],
+        "Non-Oxide Ceramics": [],
+        "Glass Ceramics": [],
+        "Advanced Ceramics": []
+      },
+      "Composites": {
+        "Polymer Matrix Composites (PMCs)": {
+          "Fiber-Reinforced Composites": [],
+          "Particulate Composites": []
+        },
+        "Metal Matrix Composites (MMCs)": [],
+        "Ceramic Matrix Composites (CMCs)": []
+      },
+      "Advanced Materials": {
+        "Nanomaterials": {
+          "Nanotubes": [],
+          "Nanowires": [],
+          "Nanoparticles": []
+        },
+        "Smart Materials": {
+          "Shape Memory Alloys": [],
+          "Piezoelectric Materials": [],
+          "Electroactive Polymers": []
+        },
+        "Biomaterials": {
+          "Biodegradable Polymers": [],
+          "Bioceramics": [],
+          "Bioactive Glasses": []
+        }
+      },
+      "Natural Materials": {
+        "Wood": [],
+        "Natural Fibers": [],
+        "Animal-Based Materials": [],
+        "Mineral-Based Materials": []
+      },
+      "Elastomers": {
+        "Natural Rubbers": [],
+        "Synthetic Rubbers": [],
+        "Thermoplastic Elastomers": []
+      },
+      "Foams": {
+        "Polymeric Foams": [],
+        "Metallic Foams": [],
+        "Ceramic Foams": []
+      },
+      "Coatings": {
+        "Metallic Coatings": [],
+        "Polymeric Coatings": [],
+        "Ceramic Coatings": [],
+        "Composite Coatings": []
+      }
+    }
+  }
+  
