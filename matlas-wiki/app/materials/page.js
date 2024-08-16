@@ -100,7 +100,7 @@ export default function MaterialsPage() {
         </div>
         {error && <div className="text-red-500 mb-4">Error: {error}</div>}
         {loading ? (
-          <div>Loading...</div>
+          <div></div>
         ) : (
           <AnimatePresence>
             {view === 'grid' ? (
@@ -142,7 +142,7 @@ export default function MaterialsPage() {
           </AnimatePresence>
         )}
       </div>
-      <div className={`md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-opacity ${showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`md:hidden fixed inset-0  backdrop-blur-sm z-50 transition-opacity ${showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className={`fixed inset-y-0 right-0 w-3/4 bg-background shadow-xl transition-transform ${showFilters ? 'translate-x-0' : 'translate-x-full'}`}>
           <Filters
             categories={categories}

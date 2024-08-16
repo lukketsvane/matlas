@@ -588,7 +588,7 @@ export default function MaterialPage({ params }) {
           </TabsContent>
           <TabsContent value="usage">
             {material.usage_examples && material.usage_examples.map((example, index) => (
-              <div key={index} className="mb-4">
+              <div key={index} className="">
                 <h3 className="text-lg font-semibold">{example.title}</h3>
                 <ReactMarkdown components={MarkdownComponents}>{example.description}</ReactMarkdown>
               </div>

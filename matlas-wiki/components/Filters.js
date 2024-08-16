@@ -15,8 +15,8 @@ export default function Filters({ categories, selectedCategory, setSelectedCateg
       <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
         <Filter className="mr-2 h-4 w-4" /> Filters
       </Button>
-      <div className="bg-card p-4 rounded-md shadow mb-4 relative z-50">
-        <h3 className="text-lg font-semibold mb-2">Filters</h3>
+      <div className="bg-card p-2 rounded-md shadowrelative z-50">
+        <h3 className="text-lg font-semibold ">Filters</h3>
         <div className="grid gap-4 mb-4">
           <div className="relative z-50">
             <Label htmlFor="category">Category</Label>

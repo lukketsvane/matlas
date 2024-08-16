@@ -80,8 +80,8 @@ export function MaterialCard({ material }) {
           </div>
         )}
       </div>
-      <div className="flex flex-col flex-grow p-4">
-        <CardHeader className="p-0 mb-2">
+      <div className="flex flex-col flex-grow p-2">
+        <CardHeader className="p-0 ">
           <CardTitle className="text-lg">{material.name}</CardTitle>
         </CardHeader>
         <CardContent className="p-0 flex flex-col flex-grow">

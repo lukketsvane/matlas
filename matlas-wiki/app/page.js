@@ -145,7 +145,7 @@ export default function HomePage() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2"
         >
           {randomMaterials.map((material, index) => (
             <motion.div
@@ -172,7 +172,7 @@ export default function HomePage() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1.4, duration: 0.5 }}
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12"
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"
       >
         {Object.entries(categories).map(([category, subcategories], index) => (
           <motion.div

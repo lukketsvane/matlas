@@ -148,7 +148,7 @@ export default function DiscoverPage() {
         ))}
       </div>
 
-      {error && <div className="text-red-500 mb-4">Error: {error}</div>}
+      {error && <div className="text-red-500">Error: {error}</div>}
       
       <AnimatePresence>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

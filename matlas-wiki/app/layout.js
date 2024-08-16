@@ -20,6 +20,7 @@ export default function RootLayout({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(true);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
 
@@ -32,8 +33,17 @@ export default function RootLayout({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
 
+    const handleScroll = () => {
+      const st = window.pageYOffset || document.documentElement.scrollTop;
+      setIsMenuVisible(st < lastScrollTop.current);
+      lastScrollTop.current = st <= 0 ? 0 : st;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
+      window.removeEventListener('scroll', handleScroll);
       subscription.unsubscribe();
     };
   }, [supabase.auth]);
@@ -82,7 +92,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
         <body className="flex h-screen bg-background text-foreground antialiased">
-          <aside className={`fixed inset-y-0 z-30 flex flex-col justify-between bg-card text-card-foreground w-16 md:w-20 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+          <aside className={`fixed inset-y-0 z-30 flex flex-col justify-between bg-card text-card-foreground w-16 md:w-20 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isMenuVisible ? '' : '-translate-y-full'}`}>
             <div className="flex flex-col items-center mt-4 space-y-4">
               <Link href="/" className="block mb-4">
                 <Image
@@ -147,7 +157,7 @@ export default function RootLayout({ children }) {
                 <Menu className="h-6 w-6" />
               </Button>
             </header>
-            <main className="flex-grow overflow-auto p-6">
+            <main className="flex-grow overflow-auto">
               {children}
             </main>
           </div>
