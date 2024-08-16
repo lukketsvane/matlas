@@ -1,3 +1,4 @@
+// matlas-wiki\app\materials\[slug]\page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -134,7 +135,7 @@ export default function MaterialPage({ params }) {
   }
 
   if (error) return <div className="px-4 py-8">Error: {error}</div>;
-  if (!material) return <div className="px-4 py-8">Material not found</div>;
+  if (!material) return <div className="px-4 py-8"></div>;
 
   return (
     <div className="max-w-screen-xl mx-auto">

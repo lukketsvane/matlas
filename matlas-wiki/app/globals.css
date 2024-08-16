@@ -9,29 +9,45 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 215 20.2% 65.1%;
     --radius: 0.5rem;
     --font-sans: 'Manrope', sans-serif;
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-    --border: 216 34% 17%;
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
+    --background: 0 0% 0%;
+    --foreground: 210 40% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --card: 0 0% 5%;
+    --card-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 1.2%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 0 0% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 0 0% 30%;
     --radius: 0.5rem;
   }
 
   body {
-    @apply bg-background text-foreground font-sans h-screen overflow-hidden;
+    @apply bg-background text-foreground font-sans min-h-screen;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -43,10 +59,85 @@
     @apply flex-grow overflow-auto p-6;
   }
 
+  /* Button styles */
+  .button {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .button-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .button-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .button-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .button-link {
+    @apply text-primary underline-offset-4 hover:underline;
+  }
+
+  /* Input styles */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Card styles */
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
+
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .card-content {
+    @apply p-6 pt-0;
+  }
+
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Table styles */
+  .table {
+    @apply w-full caption-bottom text-sm;
+  }
+
+  .table-header {
+    @apply [&_tr]:border-b;
+  }
+
+  .table-head {
+    @apply h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0;
+  }
+
+  .table-body {
+    @apply [&_tr:last-child]:border-0;
+  }
+
+  .table-row {
+    @apply border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted;
+  }
+
+  .table-cell {
+    @apply p-4 align-middle [&:has([role=checkbox])]:pr-0;
+  }
+
+  /* Markdown preview styles */
   .markdown-preview {
-    color: var(--foreground);
-    line-height: 1.6;
-    font-size: 16px;
+    @apply text-foreground leading-7 [&>*+*]:mt-6;
   }
 
   .markdown-preview h1,
@@ -55,266 +146,121 @@
   .markdown-preview h4,
   .markdown-preview h5,
   .markdown-preview h6 {
-    margin-top: 24px;
-    margin-bottom: 16px;
-    font-weight: 600;
-    line-height: 1.25;
+    @apply font-heading mt-8 mb-4 font-bold;
   }
 
-  .markdown-preview h1 { font-size: 2em; }
-  .markdown-preview h2 { font-size: 1.5em; }
-  .markdown-preview h3 { font-size: 1.25em; }
-  .markdown-preview h4 { font-size: 1em; }
-  .markdown-preview h5 { font-size: 0.875em; }
-  .markdown-preview h6 { font-size: 0.85em; }
-
-  .markdown-preview p {
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
+  .markdown-preview h1 { @apply text-4xl; }
+  .markdown-preview h2 { @apply text-3xl; }
+  .markdown-preview h3 { @apply text-2xl; }
+  .markdown-preview h4 { @apply text-xl; }
+  .markdown-preview h5 { @apply text-lg; }
+  .markdown-preview h6 { @apply text-base; }
 
   .markdown-preview a {
-    color: var(--primary);
-    text-decoration: none;
-  }
-
-  .markdown-preview a:hover {
-    text-decoration: underline;
+    @apply text-primary underline underline-offset-4;
   }
 
   .markdown-preview ul,
   .markdown-preview ol {
-    margin-top: 0;
-    margin-bottom: 16px;
-    padding-left: 2em;
+    @apply my-6 ml-6;
   }
 
-  .markdown-preview ul {
-    list-style-type: disc;
-  }
+  .markdown-preview ul { @apply list-disc; }
+  .markdown-preview ol { @apply list-decimal; }
 
-  .markdown-preview ol {
-    list-style-type: decimal;
-  }
-
-  .markdown-preview li {
-    margin-bottom: 4px;
-  }
+  .markdown-preview li { @apply mt-2; }
 
   .markdown-preview blockquote {
-    margin: 0 0 16px;
-    padding: 0 1em;
-    color: var(--muted-foreground);
-    border-left: 0.25em solid var(--border);
-  }
-
-  .markdown-preview code {
-    font-family: monospace;
-    padding: 0.2em 0.4em;
-    margin: 0;
-    font-size: 85%;
-    background-color: var(--muted);
-    border-radius: 3px;
-  }
-
-  .markdown-preview pre {
-    margin-top: 0;
-    margin-bottom: 16px;
-    padding: 16px;
-    overflow: auto;
-    font-size: 85%;
-    line-height: 1.45;
-    background-color: var(--muted);
-    border-radius: 3px;
-  }
-
-  .markdown-preview pre code {
-    display: inline;
-    max-width: auto;
-    padding: 0;
-    margin: 0;
-    overflow: visible;
-    line-height: inherit;
-    word-wrap: normal;
-    background-color: transparent;
-    border: 0;
-  }
-
-  .markdown-preview hr {
-    height: 0.25em;
-    padding: 0;
-    margin: 24px 0;
-    background-color: var(--border);
-    border: 0;
-  }
-
-  .markdown-preview table {
-    border-collapse: collapse;
-    margin-bottom: 16px;
-    width: 100%;
-    overflow: auto;
-  }
-
-  .markdown-preview table th,
-  .markdown-preview table td {
-    padding: 6px 13px;
-    border: 1px solid var(--border);
-  }
-
-  .markdown-preview table tr {
-    background-color: var(--background);
-    border-top: 1px solid var(--border);
-  }
-
-  .markdown-preview table tr:nth-child(2n) {
-    background-color: var(--muted);
+    @apply mt-6 border-l-2 border-muted pl-6 italic;
   }
 
   .markdown-preview img {
-    max-width: 100%;
-    box-sizing: content-box;
-    background-color: var(--background);
+    @apply rounded-md border;
+  }
+
+  .markdown-preview code {
+    @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm;
+  }
+
+  .markdown-preview pre {
+    @apply mt-6 mb-4 overflow-x-auto rounded-lg bg-muted p-4;
+  }
+
+  .markdown-preview pre code {
+    @apply border-0 bg-transparent p-0;
+  }
+
+  .markdown-preview hr {
+    @apply my-4 border-muted md:my-8;
+  }
+
+  .markdown-preview table {
+    @apply my-6 w-full overflow-y-auto;
+  }
+
+  .markdown-preview tr {
+    @apply m-0 border-t p-0 even:bg-muted;
+  }
+
+  .markdown-preview th {
+    @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
+  }
+
+  .markdown-preview td {
+    @apply border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right;
   }
 }
-/* Add or update these styles in matlas-wiki/app/globals.css */
 
+/* Additional styles */
 .prose {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Lato', 'Helvetica', 'Arial', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #202122;
+  @apply text-foreground;
 }
 
-.prose h1 {
-  font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
-  font-size: 28px;
-  border-bottom: 1px solid #a2a9b1;
-  margin-top: 1em;
-  margin-bottom: 0.25em;
-  padding-bottom: 0.25em;
-  font-weight: normal;
-}
-
-.prose h2 {
-  font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
-  font-size: 22px;
-  border-bottom: 1px solid #a2a9b1;
-  margin-top: 1em;
-  margin-bottom: 0.25em;
-  padding-bottom: 0.25em;
-  font-weight: normal;
-}
-
+.prose h1,
+.prose h2,
 .prose h3 {
-  font-size: 17px;
-  margin-top: 1em;
-  margin-bottom: 0.25em;
-  font-weight: bold;
-}
-
-.prose p {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-}
-
-.prose ul, .prose ol {
-  margin: 0.3em 0 0.3em 1.6em;
-  padding: 0;
-}
-
-.prose li {
-  margin-bottom: 0.1em;
+  @apply text-foreground border-border;
 }
 
 .prose a {
-  color: #0645ad;
-  text-decoration: none;
-}
-
-.prose a:hover {
-  text-decoration: underline;
-}
-
-.prose strong {
-  font-weight: bold;
-}
-
-.prose em {
-  font-style: italic;
-}
-
-.prose blockquote {
-  border-left: 4px solid #c8ccd1;
-  padding-left: 1rem;
-  margin: 0.5em 0;
-  color: #54595d;
+  @apply text-primary hover:text-primary/80;
 }
 
 .prose code {
-  background-color: #f8f9fa;
-  border: 1px solid #eaecf0;
-  border-radius: 2px;
-  padding: 1px 4px;
+  @apply bg-muted text-foreground border-border;
 }
 
 .prose pre {
-  background-color: #f8f9fa;
-  border: 1px solid #eaecf0;
-  padding: 1em;
-  white-space: pre-wrap;
-  margin: 1em 0;
+  @apply bg-muted border-border;
 }
 
-.prose table {
-  border-collapse: collapse;
-  margin: 1em 0;
+.prose blockquote {
+  @apply border-muted-foreground text-muted-foreground;
 }
 
-.prose th, .prose td {
-  border: 1px solid #a2a9b1;
-  padding: 0.2em 0.4em;
+.prose th,
+.prose td {
+  @apply border-border;
 }
 
 .prose th {
-  background-color: #eaecf0;
-  font-weight: bold;
+  @apply bg-muted;
 }
 
 .material-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5em;
+  @apply flex justify-between items-center mb-2;
 }
 
 .material-title {
-  font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
-  font-size: 28px;
-  border-bottom: none;
-  margin: 0;
-  padding: 0;
+  @apply text-3xl font-bold text-foreground;
 }
 
 .add-to-project-button {
-  font-size: 12px;
-  padding: 4px 8px;
-  background-color: #f8f9fa;
-  border: 1px solid #a2a9b1;
-  border-radius: 2px;
-  color: #202122;
-  cursor: pointer;
-}
-
-.add-to-project-button:hover {
-  background-color: #ffffff;
+  @apply text-sm px-3 py-1 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md transition-colors;
 }
 
 @media (max-width: 640px) {
   .mobile-header-image {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
-    height: 40vh;
-    object-fit: cover;
+    @apply w-screen -mx-6 h-40 object-cover;
   }
 }

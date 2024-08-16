@@ -7,18 +7,15 @@ import { useSession } from '@supabase/auth-helpers-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plus, Trash2, Eye } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { generateSlug } from '@/lib/utils';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false, loading: () => <p>Loading editor...</p> });
-import 'react-quill/dist/quill.snow.css';
+const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
 const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '' };
 
@@ -40,15 +37,6 @@ export default function EditMaterialPage({ params }) {
   const [headerImageFile, setHeaderImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isPreview, setIsPreview] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const fetchMaterial = useCallback(async () => {
     if (slug === 'new') return;
@@ -103,24 +91,11 @@ export default function EditMaterialPage({ params }) {
       {error && <Alert variant="destructive" className="mb-4"><AlertDescription>{error}</AlertDescription></Alert>}
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {isMobile ? (
-          <Select value={activeTab} onValueChange={setActiveTab}>
-            <SelectTrigger className="w-full mb-4">
-              <SelectValue placeholder="Select tab" />
-            </SelectTrigger>
-            <SelectContent>
-              {tabOptions.map((tab) => (
-                <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <TabsList className="grid w-full grid-cols-5">
-            {tabOptions.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
-            ))}
-          </TabsList>
-        )}
+        <TabsList className="grid w-full grid-cols-5">
+          {tabOptions.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+          ))}
+        </TabsList>
 
         <TabsContent value="basic-info" className="mt-4">
           <Card>
@@ -134,16 +109,12 @@ export default function EditMaterialPage({ params }) {
                 <Label htmlFor="name">Material Name</Label>
                 <Input id="name" value={material.name} onChange={(e) => handleChange('name', e.target.value)} />
               </div>
-              <div className="relative">
+              <div>
                 <Label htmlFor="description">Description</Label>
-                <Button onClick={() => setIsPreview(!isPreview)} className="absolute top-0 right-0 p-2 bg-transparent hover:bg-transparent">
-                  <Eye className="h-5 w-5 text-foreground" />
-                </Button>
-                {isPreview ? (
-                  <div className="prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: material.description }} />
-                ) : (
-                  <ReactQuill value={material.description} onChange={(content) => handleChange('description', content)} className="h-[calc(90vh-200px)] mt-2" />
-                )}
+                <MDEditor
+                  value={material.description}
+                  onChange={(value) => handleChange('description', value)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -185,7 +156,10 @@ export default function EditMaterialPage({ params }) {
               {material.usage_examples && material.usage_examples.map((example, index) => (
                 <div key={index} className="mb-4">
                   <Input value={example.title} onChange={(e) => handleArrayChange('usage_examples', index, { title: e.target.value })} placeholder="Title" className="mb-2" />
-                  <Textarea value={example.description} onChange={(e) => handleArrayChange('usage_examples', index, { description: e.target.value })} placeholder="Description" />
+                  <MDEditor
+                    value={example.description}
+                    onChange={(value) => handleArrayChange('usage_examples', index, { description: value })}
+                  />
                   <Button variant="destructive" size="sm" onClick={() => removeArrayItem('usage_examples', index)} className="mt-2">
                     <Trash2 className="mr-2 h-4 w-4" /> Remove
                   </Button>
@@ -232,7 +206,10 @@ export default function EditMaterialPage({ params }) {
               {material.related_materials && material.related_materials.map((related, index) => (
                 <div key={index} className="mb-4">
                   <Input value={related.name} onChange={(e) => handleArrayChange('related_materials', index, { name: e.target.value })} placeholder="Material Name" className="mb-2" />
-                  <Textarea value={related.description} onChange={(e) => handleArrayChange('related_materials', index, { description: e.target.value })} placeholder="Description" />
+                  <MDEditor
+                    value={related.description}
+                    onChange={(value) => handleArrayChange('related_materials', index, { description: value })}
+                  />
                   <Button variant="destructive" size="sm" onClick={() => removeArrayItem('related_materials', index)} className="mt-2">
                     <Trash2 className="mr-2 h-4 w-4" /> Remove
                   </Button>
