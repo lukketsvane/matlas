@@ -1,4 +1,5 @@
-/* eslint-disable react/no-unescaped-entities *//* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Book, Users, Lightbulb, Code, Twitter, Facebook, Youtube, Linkedin, Instagram } from 'lucide-react';
+import { ArrowRight, Book, Users, Lightbulb, Twitter, Facebook, Youtube, Linkedin, Instagram } from 'lucide-react';
 
 export default function AboutPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -45,7 +46,7 @@ export default function AboutPage() {
       </motion.h1>
 
       <p className="mb-6 text-center">
-        MatLas Wiki is a pioneering design agency and materials library, offering a meticulously curated range of over 300 innovative materials. Our mission is to catalyze innovation by enabling strategic projects and fostering connections across the materials landscape. Join us on an exhilarating journey as we explore the future of materials and their transformative impact on design, industry, and sustainability.
+        MatLas Wiki serves as a design agency and materials library, focusing on material innovation and bridging the gap between material developers and industries.
       </p>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
@@ -59,45 +60,45 @@ export default function AboutPage() {
         <div className="flex flex-col md:flex-row">
           <TabsContent value="overview" className="flex-1">
             <motion.div {...fadeIn}>
-              <h2 className="text-2xl font-bold mb-4">Welcome to MatLas Wiki</h2>
+              <h2 className="text-2xl font-bold mb-4">Overview</h2>
               <p className="mb-4">
-                MatLas Wiki is a pioneering design agency and materials library, offering a meticulously curated range of over 300 innovative materials. We stand at the forefront of material innovation, serving as the crucial bridge between cutting-edge material developers and forward-thinking industries seeking to apply these revolutionary solutions.
+                MatLas Wiki connects industries with cutting-edge materials, offering resources to support innovation in areas like packaging, architecture, and fashion.
               </p>
               <p className="mb-4">
-                Our mission is to catalyze innovation by enabling strategic projects and fostering connections across the materials landscape. Whether you're a fast-moving consumer goods company looking to revolutionize packaging, an architectural studio pushing the boundaries of sustainable building, or a fashion brand aiming to disrupt the industry with next-generation textiles, MatLas Wiki is your ultimate resource for material intelligence and sourcing.
+                The platform's mission is to drive material innovation by facilitating strategic projects and providing access to curated materials and expertise.
               </p>
               <p>
-                Join us on an exhilarating journey as we explore the future of materials and their transformative impact on design, industry, and sustainability. At MatLas Wiki, we're not just observing the future – we're actively shaping it, one innovative material at a time.
+                MatLas Wiki aims to help industries explore and implement advanced materials to enhance their products and services.
               </p>
             </motion.div>
           </TabsContent>
 
           <TabsContent value="services" className="flex-1">
             <motion.div {...fadeIn}>
-              <h2 className="text-2xl font-bold mb-4">Our Services</h2>
+              <h2 className="text-2xl font-bold mb-4">Services</h2>
               <p className="mb-4">
-                At MatLas Wiki, we offer a comprehensive suite of services designed to revolutionize how industries interact with and utilize materials. Our offerings span three main realms:
+                A range of services is offered to optimize material use and application across industries.
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <Book className="mr-2 h-5 w-5 mt-1" />
                   <div>
                     <h3 className="font-semibold">Consulting</h3>
-                    <p>Our expert consultants provide tailored advice on material selection, sourcing, and application for your specific projects. We dive deep into your needs, considering factors such as performance requirements, sustainability goals, and cost constraints to recommend the perfect materials for your application.</p>
+                    <p>Tailored advice on material selection, sourcing, and application, considering factors like performance, sustainability, and cost.</p>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <Users className="mr-2 h-5 w-5 mt-1" />
                   <div>
                     <h3 className="font-semibold">Curation</h3>
-                    <p>We meticulously curate materials tailored to your industry needs and innovation goals. Our vast library of over 300 materials is constantly updated with the latest innovations. We create customized material portfolios that align with your brand ethos, project requirements, and future aspirations.</p>
+                    <p>Custom-curated material portfolios aligned with industry needs, brand ethos, and project goals.</p>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <Lightbulb className="mr-2 h-5 w-5 mt-1" />
                   <div>
                     <h3 className="font-semibold">Education</h3>
-                    <p>Knowledge is power, especially in the fast-evolving world of materials. We offer workshops, seminars, and comprehensive resources to keep you at the forefront of material innovations. Our educational programs are designed to inspire creativity, foster innovation, and empower your team to leverage cutting-edge materials effectively.</p>
+                    <p>Workshops, seminars, and resources designed to keep teams informed about the latest in material innovations.</p>
                   </div>
                 </li>
               </ul>
@@ -106,49 +107,33 @@ export default function AboutPage() {
 
           <TabsContent value="expertise" className="flex-1">
             <motion.div {...fadeIn}>
-              <h2 className="text-2xl font-bold mb-4">Our Expertise</h2>
+              <h2 className="text-2xl font-bold mb-4">Expertise</h2>
               <p className="mb-4">
-                MatLas Wiki brings together a unique blend of design thinking and materials science expertise, positioning us at the cutting edge of material innovation:
+                MatLas Wiki combines design thinking and materials science to offer deep expertise in sustainable and cutting-edge materials, trend forecasting, and more.
               </p>
               <ul className="list-disc list-inside space-y-2 mb-4">
-                <li>Comprehensive knowledge of cutting-edge and sustainable materials across various industries</li>
-                <li>Extensive global network of material manufacturers, researchers, and makers</li>
-                <li>Advanced market intelligence and trend forecasting capabilities</li>
-                <li>End-to-end product and experience design, from concept to realization</li>
-                <li>Specialized material sourcing and application consulting for diverse sectors</li>
-                <li>Sustainability assessment and life cycle analysis of materials</li>
-                <li>Innovation workshops and creative material application ideation</li>
+                <li>In-depth knowledge of sustainable materials</li>
+                <li>Access to a global network of material experts</li>
+                <li>Trend forecasting and market intelligence</li>
+                <li>Comprehensive product and experience design</li>
+                <li>Specialized material sourcing and consulting</li>
+                <li>Sustainability assessments and life cycle analysis</li>
+                <li>Creative material application workshops</li>
               </ul>
-              <p className="mb-4">
-                Our team of experts, led by visionary partners Purva Chawla and Adele Orcajada, leverages this multidisciplinary approach to drive innovation across industries. With backgrounds spanning design, engineering, materials science, and sustainability, our team is uniquely positioned to tackle the most complex material challenges and uncover groundbreaking solutions.
-              </p>
               <p>
-                At MatLas Wiki, we don't just follow trends – we set them. Our expertise allows us to anticipate future material needs, identify emerging technologies, and guide our clients towards materials that will define the products and experiences of tomorrow.
+                This expertise supports clients in anticipating future material needs and integrating innovative solutions into their projects.
               </p>
             </motion.div>
           </TabsContent>
 
           <TabsContent value="contact" className="flex-1">
             <motion.div {...fadeIn}>
-              <h2 className="text-2xl font-bold mb-4">Contact Us</h2>
+              <h2 className="text-2xl font-bold mb-4">Contact</h2>
               <p className="mb-4">
-                MatLas Wiki operates globally, with main hubs in London, UK, Dallas, Texas, and Bilbao, Spain. Our international presence allows us to tap into diverse material innovation ecosystems and serve clients worldwide.
+                MatLas Wiki operates from London, Dallas, and Bilbao, and is available for material consulting, partnership discussions, and educational inquiries.
               </p>
               <p className="mb-4">
-                We're always excited to connect with potential clients, collaborators, and material enthusiasts. Whether you're looking to revolutionize your product line, seeking sustainable material alternatives, or simply curious about the latest in material innovation, we're here to help.
-              </p>
-              <p className="mb-4">
-                Reach out to us to:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mb-4">
-                <li>Schedule a consultation with our material experts</li>
-                <li>Learn more about our services and how we can tailor them to your needs</li>
-                <li>Explore partnership opportunities or collaborative projects</li>
-                <li>Inquire about our upcoming workshops and educational programs</li>
-                <li>Share your material innovation challenges and brainstorm solutions</li>
-              </ul>
-              <p className="mb-6">
-                Let's embark on a journey of material discovery and innovation together. The future of materials is here, and MatLas Wiki is your guide to harnessing its full potential.
+                Reach out for consultations, service information, partnership opportunities, or to learn more about workshops and other programs.
               </p>
               <Button>
                 Get in Touch <ArrowRight className="ml-2 h-4 w-4" />
@@ -164,22 +149,15 @@ export default function AboutPage() {
         transition={{ delay: 0.8, duration: 0.5 }}
         className="mt-12"
       >
-        <h2 className="text-2xl font-bold mb-4">Our Global Impact</h2>
+        <h2 className="text-2xl font-bold mb-4">Industry Applications</h2>
         <p className="mb-4">
-          MatLas Wiki's influence extends across continents and industries. Our work has catalyzed innovations in sectors ranging from aerospace to fashion, architecture to consumer electronics. We've helped companies reduce their carbon footprint through smart material choices, enabled designers to create products that push the boundaries of form and function, and supported researchers in bringing lab-grown materials to market.
+          MatLas Wiki supports innovation in various sectors, including aerospace, fashion, architecture, and consumer electronics. The platform assists in material selection and application to enhance product development and sustainability efforts.
         </p>
         <p className="mb-4">
-          Through our global network and comprehensive approach, we've:
+          Examples include the adoption of biodegradable packaging, integration of advanced composites in automotive design, and development of wearable technology.
         </p>
-        <ul className="list-disc list-inside space-y-2 mb-4">
-          <li>Facilitated the adoption of biodegradable packaging materials by major FMCG brands</li>
-          <li>Collaborated with architects to integrate self-healing concrete in groundbreaking building designs</li>
-          <li>Assisted fashion houses in developing wearable technology using smart textiles</li>
-          <li>Supported automotive manufacturers in lightweighting vehicles with advanced composites</li>
-          <li>Helped medical device companies improve patient outcomes with biocompatible materials</li>
-        </ul>
         <p>
-          At MatLas Wiki, we're not just observers of change – we're active participants in shaping a more sustainable, innovative, and materials-driven future. Join us in this exciting journey of discovery and transformation.
+          The goal is to enable industries to make informed material choices that lead to better products and sustainable practices.
         </p>
       </motion.div>
 

@@ -4,14 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
-import SearchBar from '@/components/SearchBar';
+import { Input } from "@/components/ui/input";
 import Filters from '@/components/Filters';
-import { Grid, List, Plus } from 'lucide-react';
+import { Grid, List, Plus, Search, Filter } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Card } from "@/components/ui/card";
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const MaterialCard = ({ material }) => (
   <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
@@ -117,30 +118,86 @@ export default function MaterialsPage() {
     setSearchTerm('');
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+  };
+
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 flex flex-col md:flex-row">
-      <div className="flex-grow">
-        <div className="flex flex-col mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-4">Materials Library</h1>
-          <div className="flex flex-wrap gap-4 items-center mb-4">
-            <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
-              <TabsList>
-                <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" />Grid</TabsTrigger>
-                <TabsTrigger value="table"><List className="mr-2 h-4 w-4" />Table</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} handleSearch={(e) => e.preventDefault()} />
-            <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-6">Materials Library</h1>
+      
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <form onSubmit={handleSearch} className="flex-grow flex items-center">
+          <Input 
+            type="text" 
+            placeholder="Search materials..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className="flex-grow"
+          />
+          <Button type="submit" className="ml-2">
+            <Search className="h-4 w-4" />
+          </Button>
+        </form>
+        
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="sm:hidden">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
             </Button>
-          </div>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+            </SheetHeader>
+            <Filters
+              categories={categories}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              setSelectedSubcategory={setSelectedSubcategory}
+              advancedSearch={advancedSearch}
+              setAdvancedSearch={setAdvancedSearch}
+              resetFilters={resetFilters}
+              showFilters={showFilters}
+              setShowFilters={setShowFilters}
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <Tabs value={view} onValueChange={setView} className="w-full sm:w-auto">
+          <TabsList>
+            <TabsTrigger value="grid"><Grid className="mr-2 h-4 w-4" />Grid</TabsTrigger>
+            <TabsTrigger value="table"><List className="mr-2 h-4 w-4" />Table</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {error && <div className="text-red-500 mb-4">Error: {error}</div>}
+      
+      <div className="flex flex-col md:flex-row">
+        <div className="hidden md:block w-1/4 pr-4">
+          <Filters
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            setSelectedSubcategory={setSelectedSubcategory}
+            advancedSearch={advancedSearch}
+            setAdvancedSearch={setAdvancedSearch}
+            resetFilters={resetFilters}
+            showFilters={showFilters}
+          />
         </div>
-        {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-        {loading ? (
-          <div></div>
-        ) : (
+        
+        <div className="w-full md:w-3/4">
           <AnimatePresence>
-            {view === 'grid' ? (
+            {loading ? (
+              <div>Loading...</div>
+            ) : view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredMaterials.map((material) => (
                   <motion.div key={material.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
@@ -177,36 +234,7 @@ export default function MaterialsPage() {
               </div>
             )}
           </AnimatePresence>
-        )}
-      </div>
-      <div className={`md:hidden fixed inset-0  backdrop-blur-sm z-50 transition-opacity ${showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className={`fixed inset-y-0 right-0 w-3/4 bg-background shadow-xl transition-transform ${showFilters ? 'translate-x-0' : 'translate-x-full'}`}>
-          <Filters
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            setSelectedSubcategory={setSelectedSubcategory}
-            advancedSearch={advancedSearch}
-            setAdvancedSearch={setAdvancedSearch}
-            resetFilters={resetFilters}
-            showFilters={showFilters}
-            setShowFilters={setShowFilters}
-          />
         </div>
-      </div>
-      <div className="hidden md:block">
-        <Filters
-          categories={categories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedSubcategory={selectedSubcategory}
-          setSelectedSubcategory={setSelectedSubcategory}
-          advancedSearch={advancedSearch}
-          setAdvancedSearch={setAdvancedSearch}
-          resetFilters={resetFilters}
-          showFilters={showFilters}
-        />
       </div>
     </div>
   );
