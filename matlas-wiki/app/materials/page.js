@@ -10,7 +10,7 @@ import { Grid, List, Plus, Search, Filter } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -31,8 +31,8 @@ const MaterialCard = ({ material }) => (
         </div>
       )}
     </div>
-    <div className="flex flex-col flex-grow p-4">
-      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
+    <CardContent className="flex flex-col flex-grow p-4">
+      <CardTitle className="text-lg font-bold mb-2">{material.name}</CardTitle>
       <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
         <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
       </div>
@@ -44,7 +44,7 @@ const MaterialCard = ({ material }) => (
           <Plus className="h-4 w-4" />
         </Button>
       </div>
-    </div>
+    </CardContent>
   </Card>
 );
 
@@ -59,7 +59,6 @@ export default function MaterialsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [advancedSearch, setAdvancedSearch] = useState({ inTitle: true, inDescription: false, inProperties: false });
-  const [showFilters, setShowFilters] = useState(false);
   const supabase = createClientComponentClient();
 
   const fetchMaterials = useCallback(async () => {
@@ -160,8 +159,6 @@ export default function MaterialsPage() {
               advancedSearch={advancedSearch}
               setAdvancedSearch={setAdvancedSearch}
               resetFilters={resetFilters}
-              showFilters={showFilters}
-              setShowFilters={setShowFilters}
             />
           </SheetContent>
         </Sheet>
@@ -178,21 +175,7 @@ export default function MaterialsPage() {
 
       {error && <div className="text-red-500 mb-4">Error: {error}</div>}
       
-      <div className="flex flex-col md:flex-row">
-        <div className="hidden md:block w-1/4 pr-4">
-          <Filters
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            setSelectedSubcategory={setSelectedSubcategory}
-            advancedSearch={advancedSearch}
-            setAdvancedSearch={setAdvancedSearch}
-            resetFilters={resetFilters}
-            showFilters={showFilters}
-          />
-        </div>
-        
+      <div className="flex flex-col md:flex-row gap-6">
         <div className="w-full md:w-3/4">
           <AnimatePresence>
             {loading ? (
@@ -206,7 +189,7 @@ export default function MaterialsPage() {
                 ))}
               </div>
             ) : (
-              <div className="overflow-x-auto -mx-2 sm:mx-0">
+              <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr>
@@ -234,6 +217,26 @@ export default function MaterialsPage() {
               </div>
             )}
           </AnimatePresence>
+        </div>
+        
+        <div className="hidden md:block w-1/4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Filters
+                categories={categories}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedSubcategory={selectedSubcategory}
+                setSelectedSubcategory={setSelectedSubcategory}
+                advancedSearch={advancedSearch}
+                setAdvancedSearch={setAdvancedSearch}
+                resetFilters={resetFilters}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

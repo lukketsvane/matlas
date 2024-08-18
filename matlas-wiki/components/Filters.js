@@ -4,72 +4,85 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from 'lucide-react';
 
-export default function Filters({ categories, selectedCategory, setSelectedCategory, selectedSubcategory, setSelectedSubcategory, advancedSearch, setAdvancedSearch, resetFilters, applyFilters }) {
-  const [showFilters, setShowFilters] = useState(false);
-
+export default function Filters({ categories, selectedCategory, setSelectedCategory, selectedSubcategory, setSelectedSubcategory, advancedSearch, setAdvancedSearch, resetFilters }) {
   return (
-    <div className={`filters-container ${showFilters ? 'block' : 'hidden'} md:block md:ml-8 w-full md:w-1/4`}>
-      <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
-        <Filter className="mr-2 h-4 w-4" /> Filters
-      </Button>
-      <div className="bg-card p-2 rounded-md shadowrelative z-50">
-        <h3 className="text-lg font-semibold ">Filters</h3>
-        <div className="grid gap-4 mb-4">
-          <div className="relative z-50">
-            <Label htmlFor="category">Category</Label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger id="category">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent className="z-50">
-                <SelectItem value="all">All categories</SelectItem>
-                {Object.keys(categories).map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {selectedCategory !== 'all' && (
-            <div className="relative z-50">
-              <Label htmlFor="subcategory">Subcategory</Label>
-              <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                <SelectTrigger id="subcategory">
-                  <SelectValue placeholder="Select subcategory" />
-                </SelectTrigger>
-                <SelectContent className="z-50">
-                  <SelectItem value="all">All subcategories</SelectItem>
-                  {categories[selectedCategory]?.map(subcategory => (
-                    <SelectItem key={subcategory} value={subcategory}>{subcategory}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label className="text-base font-semibold">Search in:</Label>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(advancedSearch).map(([key, value]) => (
-              <Label key={key} className="flex items-center space-x-2">
-                <Checkbox
-                  checked={value}
-                  onCheckedChange={checked => setAdvancedSearch({ ...advancedSearch, [key]: checked })}
-                />
-                <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
-              </Label>
-            ))}
-          </div>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button onClick={resetFilters} variant="outline" className="mr-2">
-            <Filter className="mr-2 h-4 w-4" />
+    <div className="space-y-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full justify-between">
+            {selectedCategory === 'all' ? 'All categories' : selectedCategory}
+            <ChevronDown className="ml-2 h-4 w-4" />
           </Button>
-          <Button onClick={applyFilters}>Apply Filters</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuLabel>Category</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setSelectedCategory('all')}>
+            All categories
+          </DropdownMenuItem>
+          {Object.keys(categories).map(category => (
+            <DropdownMenuItem key={category} onSelect={() => setSelectedCategory(category)}>
+              {category}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {selectedCategory !== 'all' && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              {selectedSubcategory === 'all' ? 'All subcategories' : selectedSubcategory}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel>Subcategory</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => setSelectedSubcategory('all')}>
+              All subcategories
+            </DropdownMenuItem>
+            {categories[selectedCategory]?.map(subcategory => (
+              <DropdownMenuItem key={subcategory} onSelect={() => setSelectedSubcategory(subcategory)}>
+                {subcategory}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      <div>
+        <Label className="mb-2 block">Search in:</Label>
+        <div className="space-y-2">
+          {Object.entries(advancedSearch).map(([key, value]) => (
+            <div key={key} className="flex items-center">
+              <Checkbox
+                id={`search-${key}`}
+                checked={value}
+                onCheckedChange={(checked) => setAdvancedSearch({ ...advancedSearch, [key]: checked })}
+                className="mr-2"
+              />
+              <Label htmlFor={`search-${key}`} className="text-sm cursor-pointer">
+                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+              </Label>
+            </div>
+          ))}
         </div>
       </div>
+
+      <Button onClick={resetFilters} variant="outline" className="w-full">
+        Reset Filters
+      </Button>
     </div>
   );
 }
