@@ -1,109 +1,72 @@
-matlas                                            
-├─ matlas-wiki                                 
-│  ├─ app                                         
-│  │  ├─ api                                      
-│  │  │  ├─ materials                             
-│  │  │  │  └─ route.js                           
-│  │  │  ├─ search                                
-│  │  │  │  └─ route.js                           
-│  │  │  └─ insert-material.js                    
-│  │  ├─ auth                                     
-│  │  │  └─ page.js                               
-│  │  ├─ materials                                
-│  │  │  ├─ [slug]                                
-│  │  │  │  ├─ edit                               
-│  │  │  │  │  └─ page.js                         
-│  │  │  │  └─ page.js                            
-│  │  │  └─ page.js                               
-│  │  ├─ profile                                  
-│  │  │  └─ page.js                               
-│  │  ├─ favicon.ico                              
-│  │  ├─ globals.css                              
-│  │  ├─ layout.js                                
-│  │  └─ page.js                                  
-│  ├─ components                                  
-│  │  ├─ ui                                       
-│  │  │  ├─ accordion.jsx                         
-│  │  │  ├─ alert-dialog.jsx                      
-│  │  │  ├─ alert.jsx                             
-│  │  │  ├─ aspect-ratio.jsx                      
-│  │  │  ├─ avatar.jsx                            
-│  │  │  ├─ badge.jsx                             
-│  │  │  ├─ breadcrumb.jsx                        
-│  │  │  ├─ button.jsx                            
-│  │  │  ├─ calendar.jsx                          
-│  │  │  ├─ card.jsx                              
-│  │  │  ├─ carousel.jsx                          
-│  │  │  ├─ chart.jsx                             
-│  │  │  ├─ checkbox.jsx                          
-│  │  │  ├─ collapsible.jsx                       
-│  │  │  ├─ command.jsx                           
-│  │  │  ├─ context-menu.jsx                      
-│  │  │  ├─ dialog.jsx                            
-│  │  │  ├─ drawer.jsx                            
-│  │  │  ├─ dropdown-menu.jsx                     
-│  │  │  ├─ form.jsx                              
-│  │  │  ├─ hover-card.jsx                        
-│  │  │  ├─ input-otp.jsx                         
-│  │  │  ├─ input.jsx                             
-│  │  │  ├─ label.jsx                             
-│  │  │  ├─ menubar.jsx                           
-│  │  │  ├─ navigation-menu.jsx                   
-│  │  │  ├─ pagination.jsx                        
-│  │  │  ├─ popover.jsx                           
-│  │  │  ├─ progress.jsx                          
-│  │  │  ├─ radio-group.jsx                       
-│  │  │  ├─ resizable.jsx                         
-│  │  │  ├─ scroll-area.jsx                       
-│  │  │  ├─ select.jsx                            
-│  │  │  ├─ separator.jsx                         
-│  │  │  ├─ sheet.jsx                             
-│  │  │  ├─ skeleton.jsx                          
-│  │  │  ├─ slider.jsx                            
-│  │  │  ├─ sonner.jsx                            
-│  │  │  ├─ switch.jsx                            
-│  │  │  ├─ table.jsx                             
-│  │  │  ├─ tabs.jsx                              
-│  │  │  ├─ textarea.jsx                          
-│  │  │  ├─ toast.jsx                             
-│  │  │  ├─ toaster.jsx                           
-│  │  │  ├─ toggle-group.jsx                      
-│  │  │  ├─ toggle.jsx                            
-│  │  │  ├─ tooltip.jsx                           
-│  │  │  └─ use-toast.js                          
-│  │  ├─ MarkdownEditor.js                        
-│  │  ├─ MaterialCard.js                          
-│  │  ├─ PropertyTable.js                         
-│  │  ├─ SearchBar.js                             
-│  │  └─ component.jsx                            
-│  ├─ lib                                         
-│  │  ├─ auth.js                                  
-│  │  ├─ db.js                                    
-│  │  ├─ imageUpload.js                           
-│  │  ├─ page.js                                  
-│  │  ├─ supabaseClient.js                        
-│  │  ├─ theme.js                                 
-│  │  └─ utils.js                                 
-│  ├─ public                                      
-│  │  ├─ matlas-logo.png                          
-│  │  ├─ next.svg                                 
-│  │  ├─ placeholder.svg                          
-│  │  └─ vercel.svg                               
-│  ├─ README.md                                   
-│  ├─ combined_code.txt                           
-│  ├─ components.json                             
-│  ├─ ee a compact version of the commit history  
-│  ├─ insert-initial-data.js                      
-│  ├─ jsconfig.json                               
-│  ├─ next.config.mjs                             
-│  ├─ package-lock.json                           
-│  ├─ package.json                                
-│  ├─ postcss.config.mjs                          
-│  ├─ t commit but keep the changes               
-│  ├─ tailwind.config.js                          
-│  └─ write.py                                    
-├─ Engineering_Materials_v3.txt                   
-├─ README.md                                      
-├─ gen.py                                         
-├─ materials_to_generate.txt                      
-└─ write.py                                       
+# MatLas Wiki
+
+MatLas Wiki is a comprehensive material encyclopedia built with Next.js, Supabase, and Tailwind CSS. It provides a platform for exploring, discovering, and contributing to a vast database of materials and their properties.
+
+## Features
+
+- **Material Library**: Browse and search a diverse collection of materials.
+- **Detailed Material Pages**: View comprehensive information about each material, including properties, usage examples, and related materials.
+- **User Authentication**: Sign up, log in, and manage your profile.
+- **Contribution System**: Add new materials or edit existing ones (for authenticated users).
+- **Project Management**: Create and manage projects, associating materials with specific projects.
+- **Responsive Design**: Fully responsive interface for seamless use across devices.
+- **Dark Mode**: Toggle between light and dark themes for comfortable viewing.
+
+## Tech Stack
+
+- **Frontend**: Next.js, React
+- **Backend**: Supabase (PostgreSQL)
+- **Styling**: Tailwind CSS, Shadcn UI
+- **Authentication**: Supabase Auth
+- **Deployment**: Vercel
+
+## Getting Started
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/matlas-wiki.git
+   cd matlas-wiki
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory and add the following:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Run the development server:
+   ```
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+- `app/`: Next.js app router and page components
+- `components/`: Reusable React components
+- `lib/`: Utility functions and configurations
+- `public/`: Static assets
+
+## Contributing
+
+We welcome contributions to MatLas Wiki! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [Supabase](https://supabase.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Shadcn UI](https://ui.shadcn.com/)
+
+For more information, visit our [website](https://matlas-wiki.vercel.app) or contact us at support@matlaswiki.com.
