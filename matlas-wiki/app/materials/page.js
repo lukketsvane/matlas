@@ -1,14 +1,51 @@
 'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
-import { MaterialCard } from '@/components/MaterialCard';
 import SearchBar from '@/components/SearchBar';
 import Filters from '@/components/Filters';
-import { Grid, List } from 'lucide-react';
+import { Grid, List, Plus } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { Card } from "@/components/ui/card";
+import MarkdownRenderer from '@/components/MarkdownRenderer';
+
+const MaterialCard = ({ material }) => (
+  <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
+    <div className="h-32 relative">
+      {material.header_image ? (
+        <Image 
+          src={material.header_image}
+          alt={material.name}
+          layout="fill"
+          objectFit="cover"
+          className="rounded-t-lg"
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
+          <span className="text-gray-400">No image</span>
+        </div>
+      )}
+    </div>
+    <div className="flex flex-col flex-grow p-4">
+      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
+      <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
+        <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
+      </div>
+      <div className="flex justify-between items-center mt-auto">
+        <Link href={`/materials/${material.slug}`}>
+          <Button variant="outline" size="sm">View Details</Button>
+        </Link>
+        <Button variant="ghost" size="icon">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  </Card>
+);
 
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState([]);

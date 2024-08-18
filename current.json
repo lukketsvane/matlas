@@ -1,0 +1,440 @@
+[
+  {
+    "name": "Zirconium dioxide (ZrO2)"
+  },
+  {
+    "name": "Carbon Steels"
+  },
+  {
+    "name": "African Blackwood"
+  },
+  {
+    "name": "Alloy Steels"
+  },
+  {
+    "name": "Titanium dioxide (TiO2)"
+  },
+  {
+    "name": "Aluminum 7075-T6"
+  },
+  {
+    "name": "Magnesium oxide (MgO)"
+  },
+  {
+    "name": "Tool Steels"
+  },
+  {
+    "name": "Radiata Pine"
+  },
+  {
+    "name": "Titanium Grade 5 (Ti-6Al-4V)"
+  },
+  {
+    "name": "M2 High-Speed Tool Steel"
+  },
+  {
+    "name": "Eastern Red Cedar"
+  },
+  {
+    "name": "Beryllium oxide (BeO)"
+  },
+  {
+    "name": "Maraging Steel 250"
+  },
+  {
+    "name": "Stainless Steels"
+  },
+  {
+    "name": "Yttrium oxide (Y2O3)"
+  },
+  {
+    "name": "Duplex 2205 Stainless Steel"
+  },
+  {
+    "name": "PEEK (Polyether Ether Ketone)"
+  },
+  {
+    "name": "Phenolic Resin"
+  },
+  {
+    "name": "White Iron"
+  },
+  {
+    "name": "Gray Iron"
+  },
+  {
+    "name": "Epoxy resin"
+  },
+  {
+    "name": "Yttria-Stabilized Zirconia (YSZ)"
+  },
+  {
+    "name": "Titania (TiO2)"
+  },
+  {
+    "name": "PPS (Polyphenylene Sulfide)"
+  },
+  {
+    "name": "Shape Memory Alloy (Nitinol)"
+  },
+  {
+    "name": "White Oak"
+  },
+  {
+    "name": "Nylon 6/6"
+  },
+  {
+    "name": "Vinyl Ester Resin"
+  },
+  {
+    "name": "UHMWPE (Ultra-High-Molecular-Weight Polyethylene)"
+  },
+  {
+    "name": "Polycarbonate"
+  },
+  {
+    "name": "Malleable Iron"
+  },
+  {
+    "name": "Silicone Rubber"
+  },
+  {
+    "name": "Melamine Formaldehyde"
+  },
+  {
+    "name": "Western White Pine"
+  },
+  {
+    "name": "Beryllium Oxide (Ceramic, Oxide)"
+  },
+  {
+    "name": "Magnesium Aluminate Spinel"
+  },
+  {
+    "name": "Phenol formaldehyde"
+  },
+  {
+    "name": "Alumina (Al2O3)"
+  },
+  {
+    "name": "Hard Maple"
+  },
+  {
+    "name": "Soft Maple"
+  },
+  {
+    "name": "Aluminum-Silicon Carbide (Al-SiC)"
+  },
+  {
+    "name": "Silicon Carbide (SiC)"
+  },
+  {
+    "name": "Mullite (Ceramic, Oxide)"
+  },
+  {
+    "name": "Silicon Nitride (Si3N4)"
+  },
+  {
+    "name": "Walnut (Juglans nigra)"
+  },
+  {
+    "name": "Carbon Fiber Reinforced Polymer (CFRP)"
+  },
+  {
+    "name": "Titanium Carbide"
+  },
+  {
+    "name": "Aluminum Nitride"
+  },
+  {
+    "name": "Kevlar/Epoxy Composite"
+  },
+  {
+    "name": "Boron Fiber/Epoxy Composite"
+  },
+  {
+    "name": "Nanocomposite (Polymer Matrix Composite)"
+  },
+  {
+    "name": "Titanium-Boron Fiber Composite"
+  },
+  {
+    "name": "Copper-Graphite Composite"
+  },
+  {
+    "name": "Western Red Cedar"
+  },
+  {
+    "name": "Aluminum-Alumina Composite"
+  },
+  {
+    "name": "Graphene"
+  },
+  {
+    "name": "Quantum Dot"
+  },
+  {
+    "name": "Metallic Glass"
+  },
+  {
+    "name": "Burr Oak"
+  },
+  {
+    "name": "Boron Carbide"
+  },
+  {
+    "name": "Hickory"
+  },
+  {
+    "name": "H13 Tool Steel"
+  },
+  {
+    "name": "Cherry (Prunus serotina)"
+  },
+  {
+    "name": "Burr Walnut"
+  },
+  {
+    "name": "Beech (Hardwoods, North American)"
+  },
+  {
+    "name": "Boron Nitride (BN)"
+  },
+  {
+    "name": "Natural Fiber Reinforced Polymer"
+  },
+  {
+    "name": "Bald Cypress"
+  },
+  {
+    "name": "Birdseye Maple"
+  },
+  {
+    "name": "Blackbutt"
+  },
+  {
+    "name": "European Hornbeam"
+  },
+  {
+    "name": "European Larch"
+  },
+  {
+    "name": "Ductile Iron"
+  },
+  {
+    "name": "Tallowwood"
+  },
+  {
+    "name": "Tasmanian Oak"
+  },
+  {
+    "name": "Spotted Gum"
+  },
+  {
+    "name": "Sugi (Japanese Cedar)"
+  },
+  {
+    "name": "Blackwood"
+  },
+  {
+    "name": "Jarrah"
+  },
+  {
+    "name": "Camphor Burl"
+  },
+  {
+    "name": "Ironbark"
+  },
+  {
+    "name": "Douglas Fir"
+  },
+  {
+    "name": "Southern Yellow Pine"
+  },
+  {
+    "name": "Hemlock (Softwoods, North American)"
+  },
+  {
+    "name": "Spruce (Softwoods, North American)"
+  },
+  {
+    "name": "Lodgepole Pine"
+  },
+  {
+    "name": "Norway Spruce"
+  },
+  {
+    "name": "European Yew"
+  },
+  {
+    "name": "Hinoki (Japanese Cypress)"
+  },
+  {
+    "name": "Curly Maple"
+  },
+  {
+    "name": "Myrtle"
+  },
+  {
+    "name": "Red Gum"
+  },
+  {
+    "name": "Eastern White Pine"
+  },
+  {
+    "name": "Silky Oak"
+  },
+  {
+    "name": "Thuya Burl"
+  },
+  {
+    "name": "Medium Density Fiberboard (MDF)"
+  },
+  {
+    "name": "Bamboo Plywood"
+  },
+  {
+    "name": "Example Material"
+  },
+  {
+    "name": "Aluminum oxide (Al2O3)"
+  },
+  {
+    "name": "Nickel 200"
+  },
+  {
+    "name": "Polyurethane Elastomer"
+  },
+  {
+    "name": "Larch (Softwoods, North American)"
+  },
+  {
+    "name": "Scots Pine"
+  },
+  {
+    "name": "Pink Ivory"
+  },
+  {
+    "name": "European Silver Fir"
+  },
+  {
+    "name": "Kauri"
+  },
+  {
+    "name": "Parana Pine"
+  },
+  {
+    "name": "Spalted Maple"
+  },
+  {
+    "name": "Quilted Maple"
+  },
+  {
+    "name": "Koa"
+  },
+  {
+    "name": "Mango"
+  },
+  {
+    "name": "Snakewood"
+  },
+  {
+    "name": "Ziricote"
+  },
+  {
+    "name": "Kingwood"
+  },
+  {
+    "name": "Redwood (Softwoods, North American)"
+  },
+  {
+    "name": "Macassar Ebony"
+  },
+  {
+    "name": "Letterwood"
+  },
+  {
+    "name": "Tulipwood"
+  },
+  {
+    "name": "Desert Ironwood"
+  },
+  {
+    "name": "Pau Ferro"
+  },
+  {
+    "name": "Osage Orange"
+  },
+  {
+    "name": "Boxwood"
+  },
+  {
+    "name": "Particleboard"
+  },
+  {
+    "name": "Decorative Veneer Plywood"
+  },
+  {
+    "name": "Oriented Strand Board (OSB)"
+  },
+  {
+    "name": "Red Oak"
+  },
+  {
+    "name": "Aircraft Plywood"
+  },
+  {
+    "name": "Laminated Veneer Lumber (LVL)"
+  },
+  {
+    "name": "Piezoelectric Ceramic"
+  },
+  {
+    "name": "Baltic Birch Plywood"
+  },
+  {
+    "name": "Cross-Laminated Timber (CLT)"
+  },
+  {
+    "name": "Glued Laminated Timber (Glulam)"
+  },
+  {
+    "name": "High Density Fiberboard (HDF)"
+  },
+  {
+    "name": "Marine Plywood"
+  },
+  {
+    "name": "Magnesium-Alumina Composite"
+  },
+  {
+    "name": "PTFE (Polytetrafluoroethylene)"
+  },
+  {
+    "name": "Ash (Hardwoods, North American)"
+  },
+  {
+    "name": "Amaranth"
+  },
+  {
+    "name": "Basswood"
+  },
+  {
+    "name": "Bloodwood"
+  },
+  {
+    "name": "Blue Gum"
+  },
+  {
+    "name": "Amboyna Burl"
+  },
+  {
+    "name": "Inconel 718"
+  },
+  {
+    "name": "Epoxy Resin (Bisphenol A)"
+  },
+  {
+    "name": "AISI 1045 Carbon Steel"
+  }
+]

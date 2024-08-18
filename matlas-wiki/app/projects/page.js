@@ -172,42 +172,69 @@ export default function ProjectsPage() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>{project.name}</TableCell>
-                  <TableCell>{project.description}</TableCell>
-                  <TableCell>{new Date(project.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" onClick={() => router.push(`/projects/${project.id}`)}>
-                        <FolderOpen className="h-4 w-4 mr-2" /> View
-                      </Button>
-                      <Button variant="outline" onClick={() => { setEditingProject(project); setIsEditProjectDialogOpen(true); }}>
-                        <Edit className="h-4 w-4 mr-2" /> Edit
-                      </Button>
-                      <Button variant="destructive" onClick={() => deleteProject(project.id)}>
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete
-                      </Button>
-                    </div>
-                  </TableCell>
+      <div className="hidden md:block">
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {projects.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell>{project.name}</TableCell>
+                    <TableCell>{project.description}</TableCell>
+                    <TableCell>{new Date(project.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" onClick={() => router.push(`/projects/${project.id}`)}>
+                          <FolderOpen className="h-4 w-4 mr-2" /> View
+                        </Button>
+                        <Button variant="outline" onClick={() => { setEditingProject(project); setIsEditProjectDialogOpen(true); }}>
+                          <Edit className="h-4 w-4 mr-2" /> Edit
+                        </Button>
+                        <Button variant="destructive" onClick={() => deleteProject(project.id)}>
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="md:hidden space-y-4">
+        {projects.map((project) => (
+          <Card key={project.id}>
+            <CardHeader>
+              <CardTitle>{project.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-2">{project.description}</p>
+              <p className="text-sm mb-4">Created: {new Date(project.created_at).toLocaleDateString()}</p>
+              <div className="flex flex-col space-y-2">
+                <Button variant="outline" onClick={() => router.push(`/projects/${project.id}`)}>
+                  <FolderOpen className="h-4 w-4 mr-2" /> View
+                </Button>
+                <Button variant="outline" onClick={() => { setEditingProject(project); setIsEditProjectDialogOpen(true); }}>
+                  <Edit className="h-4 w-4 mr-2" /> Edit
+                </Button>
+                <Button variant="destructive" onClick={() => deleteProject(project.id)}>
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <Dialog open={isEditProjectDialogOpen} onOpenChange={setIsEditProjectDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">

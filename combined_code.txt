@@ -113,18 +113,15 @@ import { useSession } from '@supabase/auth-helpers-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Plus, Trash2, Eye } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { generateSlug } from '@/lib/utils';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false, loading: () => <p>Loading editor...</p> });
-import 'react-quill/dist/quill.snow.css';
+const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
 const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '' };
 
@@ -146,15 +143,6 @@ export default function EditMaterialPage({ params }) {
   const [headerImageFile, setHeaderImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isPreview, setIsPreview] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const fetchMaterial = useCallback(async () => {
     if (slug === 'new') return;
@@ -209,24 +197,11 @@ export default function EditMaterialPage({ params }) {
       {error && <Alert variant="destructive" className="mb-4"><AlertDescription>{error}</AlertDescription></Alert>}
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {isMobile ? (
-          <Select value={activeTab} onValueChange={setActiveTab}>
-            <SelectTrigger className="w-full mb-4">
-              <SelectValue placeholder="Select tab" />
-            </SelectTrigger>
-            <SelectContent>
-              {tabOptions.map((tab) => (
-                <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <TabsList className="grid w-full grid-cols-5">
-            {tabOptions.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
-            ))}
-          </TabsList>
-        )}
+        <TabsList className="grid w-full grid-cols-5">
+          {tabOptions.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+          ))}
+        </TabsList>
 
         <TabsContent value="basic-info" className="mt-4">
           <Card>
@@ -240,16 +215,12 @@ export default function EditMaterialPage({ params }) {
                 <Label htmlFor="name">Material Name</Label>
                 <Input id="name" value={material.name} onChange={(e) => handleChange('name', e.target.value)} />
               </div>
-              <div className="relative">
+              <div>
                 <Label htmlFor="description">Description</Label>
-                <Button onClick={() => setIsPreview(!isPreview)} className="absolute top-0 right-0 p-2 bg-transparent hover:bg-transparent">
-                  <Eye className="h-5 w-5 text-foreground" />
-                </Button>
-                {isPreview ? (
-                  <div className="prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: material.description }} />
-                ) : (
-                  <ReactQuill value={material.description} onChange={(content) => handleChange('description', content)} className="h-[calc(90vh-200px)] mt-2" />
-                )}
+                <MDEditor
+                  value={material.description}
+                  onChange={(value) => handleChange('description', value)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -291,7 +262,10 @@ export default function EditMaterialPage({ params }) {
               {material.usage_examples && material.usage_examples.map((example, index) => (
                 <div key={index} className="mb-4">
                   <Input value={example.title} onChange={(e) => handleArrayChange('usage_examples', index, { title: e.target.value })} placeholder="Title" className="mb-2" />
-                  <Textarea value={example.description} onChange={(e) => handleArrayChange('usage_examples', index, { description: e.target.value })} placeholder="Description" />
+                  <MDEditor
+                    value={example.description}
+                    onChange={(value) => handleArrayChange('usage_examples', index, { description: value })}
+                  />
                   <Button variant="destructive" size="sm" onClick={() => removeArrayItem('usage_examples', index)} className="mt-2">
                     <Trash2 className="mr-2 h-4 w-4" /> Remove
                   </Button>
@@ -338,7 +312,10 @@ export default function EditMaterialPage({ params }) {
               {material.related_materials && material.related_materials.map((related, index) => (
                 <div key={index} className="mb-4">
                   <Input value={related.name} onChange={(e) => handleArrayChange('related_materials', index, { name: e.target.value })} placeholder="Material Name" className="mb-2" />
-                  <Textarea value={related.description} onChange={(e) => handleArrayChange('related_materials', index, { description: e.target.value })} placeholder="Description" />
+                  <MDEditor
+                    value={related.description}
+                    onChange={(value) => handleArrayChange('related_materials', index, { description: value })}
+                  />
                   <Button variant="destructive" size="sm" onClick={() => removeArrayItem('related_materials', index)} className="mt-2">
                     <Trash2 className="mr-2 h-4 w-4" /> Remove
                   </Button>
@@ -365,66 +342,39 @@ export default function EditMaterialPage({ params }) {
 
 /./matlas-wiki/app/materials/[slug]/page.js
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useSession } from '@supabase/auth-helpers-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-
-const MarkdownComponents = {
-  h1: ({ node, ...props }) => <h1 className="text-2xl font-normal mt-6 mb-1 pb-1 border-b border-gray-200" {...props} />,
-  h2: ({ node, ...props }) => <h2 className="text-xl font-normal mt-6 mb-1 pb-1 border-b border-gray-200" {...props} />,
-  h3: ({ node, ...props }) => <h3 className="text-lg font-bold mt-4 mb-1" {...props} />,
-  ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-2" {...props} />,
-  ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-2" {...props} />,
-  li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-  p: ({ node, ...props }) => <p className="my-2" {...props} />,
-  a: ({ node, ...props }) => <a className="text-blue-600 hover:underline" {...props} />,
-  strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
-  em: ({ node, ...props }) => <em className="italic" {...props} />,
-  blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 my-2 text-gray-600" {...props} />,
-  code: ({ node, inline, ...props }) => 
-    inline ? (
-      <code className="bg-gray-100 border border-gray-200 rounded px-1" {...props} />
-    ) : (
-      <pre className="bg-gray-100 border border-gray-200 p-4 my-4 whitespace-pre-wrap">
-        <code {...props} />
-      </pre>
-    ),
-  table: ({ node, ...props }) => <table className="border-collapse my-4 w-full" {...props} />,
-  th: ({ node, ...props }) => <th className="border border-gray-300 px-4 py-2 bg-gray-100 font-bold" {...props} />,
-  td: ({ node, ...props }) => <td className="border border-gray-300 px-4 py-2" {...props} />,
-};
+import { Pencil } from 'lucide-react';
+import SearchBar from '@/components/SearchBar';
+import AddToProjectDialog from '@/components/AddToProjectDialog';
+import MaterialTabs from '@/components/MaterialTabs';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 export default function MaterialPage({ params }) {
-  const router = useRouter();
   const { slug } = params;
   const [material, setMaterial] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const session = useSession();
-  const supabase = useSupabaseClient();
-
-  const [userProjects, setUserProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
+  const supabase = createClientComponentClient();
+  const [isSearchVisible, setIsSearchVisible] = useState(true);
+  const lastScrollTop = useRef(0);
 
   useEffect(() => {
     fetchMaterial();
-    if (session) {
-      fetchUserProjects();
-    }
-  }, [slug, session]);
+    const handleScroll = () => {
+      const st = window.pageYOffset || document.documentElement.scrollTop;
+      setIsSearchVisible(st <= lastScrollTop.current || st <= 100);
+      lastScrollTop.current = st <= 0 ? 0 : st;
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [slug]);
 
   async function fetchMaterial() {
     try {
@@ -434,7 +384,6 @@ export default function MaterialPage({ params }) {
         .select('*')
         .eq('slug', slug)
         .single();
-      
       if (error) throw error;
       setMaterial(data);
     } catch (error) {
@@ -445,184 +394,43 @@ export default function MaterialPage({ params }) {
     }
   }
 
-  async function fetchUserProjects() {
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('id, name')
-        .eq('user_id', session.user.id);
-
-      if (error) throw error;
-      setUserProjects(data);
-    } catch (error) {
-      console.error('Error fetching user projects:', error);
-    }
-  }
-
-  async function saveMaterialToProject() {
-    if (!selectedProject) return;
-    try {
-      const { error } = await supabase
-        .from('project_materials')
-        .insert({ 
-          project_id: selectedProject, 
-          material_id: material.id 
-        });
-
-      if (error) throw error;
-      alert('Material saved to project successfully!');
-      setIsAddToProjectOpen(false);
-    } catch (error) {
-      console.error('Error saving material to project:', error);
-      alert('Failed to save material to project');
-    }
-  }
-
-  async function createNewProject() {
-    if (!newProjectName.trim()) return;
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert([
-          { name: newProjectName, user_id: session.user.id }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setUserProjects([...userProjects, data]);
-      setSelectedProject(data.id);
-      setNewProjectName('');
-    } catch (error) {
-      console.error('Error creating new project:', error);
-      alert('Failed to create new project');
-    }
-  }
-
+  if (loading) return <div className="flex justify-center items-center h-screen"></div>;
   if (error) return <div className="px-4 py-8">Error: {error}</div>;
   if (!material) return <div className="px-4 py-8">Material not found</div>;
 
   return (
     <div className="max-w-screen-xl mx-auto">
+      <SearchBar isVisible={isSearchVisible} />
       {material.header_image && (
-  <div className="w-full h-64 relative mb-4 sm:px-4">
-    <div className="absolute inset-0 sm:static">
-      <Image 
-        src={material.header_image}
-        alt={material.name}
-        layout="fill"
-        objectFit="cover"
-        priority
-        className="sm:rounded-lg"
-      />
-    </div>
-  </div>
-)}
-      <div className="px-4">
+        <div className="w-full h-64 sm:h-96 relative">
+          <Image 
+            src={material.header_image}
+            alt={material.name}
+            layout="fill"
+            objectFit="cover"
+            priority
+            className="w-screen"
+          />
+        </div>
+      )}
+      <div className="px-4 mt-4">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-normal">{material.name}</h1>
-          {session && (
-            <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
-              <DialogTrigger asChild>
-                <button className="px-3 py-1 text-sm bg-gray-100 border border-gray-300 rounded hover:bg-gray-200">
-                  Add to Project
-                </button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add to Project</DialogTitle>
-                </DialogHeader>
-                <Select value={selectedProject} onValueChange={setSelectedProject}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {userProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center mt-4">
-                  <Input
-                    placeholder="New Project Name"
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                    className="mr-2"
-                  />
-                  <Button onClick={createNewProject} size="sm">
-                    <Plus className="h-4 w-4" />
+          <h1 className="text-3xl font-bold">{material.name}</h1>
+          <div className="flex items-center">
+            {session && (
+              <>
+                <Link href={`/materials/${material.slug}/edit`}>
+                  <Button variant="outline" size="icon" className="mr-2">
+                    <Pencil className="h-4 w-4" />
                   </Button>
-                </div>
-                <Button onClick={saveMaterialToProject} className="mt-4">Save to Project</Button>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-        <div className="prose max-w-none">
-          <ReactMarkdown components={MarkdownComponents}>{material.description}</ReactMarkdown>
-        </div>
-        
-        <Tabs defaultValue="properties" className="mt-8">
-          <TabsList>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="usage">Usage Examples</TabsTrigger>
-            <TabsTrigger value="history">Edit History</TabsTrigger>
-          </TabsList>
-          <TabsContent value="properties">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Property</TableHead>
-                  <TableHead>Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(material.properties || {}).map(([key, value]) => (
-                  <TableRow key={key}>
-                    <TableCell className="font-medium">{key}</TableCell>
-                    <TableCell>{value}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TabsContent>
-          <TabsContent value="usage">
-            {material.usage_examples && material.usage_examples.map((example, index) => (
-              <div key={index} className="">
-                <h3 className="text-lg font-semibold">{example.title}</h3>
-                <ReactMarkdown components={MarkdownComponents}>{example.description}</ReactMarkdown>
-              </div>
-            ))}
-          </TabsContent>
-          <TabsContent value="history">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Editor</TableHead>
-                  <TableHead>Changes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {material.edit_history && material.edit_history.map((edit, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{new Date(edit.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{edit.editor}</TableCell>
-                    <TableCell>{edit.changes}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TabsContent>
-        </Tabs>
-        
-        {session && (
-          <div className="mt-8">
-            <Link href={`/materials/${material.slug}/edit`}>
-              <Button className="w-full">Edit Material</Button>
-            </Link>
+                </Link>
+                <AddToProjectDialog material={material} />
+              </>
+            )}
           </div>
-        )}
+        </div>
+        <MarkdownRenderer content={material.description} />
+        <MaterialTabs material={material} />
       </div>
     </div>
   );
@@ -643,7 +451,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /./matlas-wiki/app/materials/page.js
 'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -665,43 +472,28 @@ export default function MaterialsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
-  const [advancedSearch, setAdvancedSearch] = useState({
-    inTitle: true,
-    inDescription: false,
-    inProperties: false,
-  });
+  const [advancedSearch, setAdvancedSearch] = useState({ inTitle: true, inDescription: false, inProperties: false });
   const [showFilters, setShowFilters] = useState(false);
-
   const supabase = createClientComponentClient();
 
   const fetchMaterials = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from('materials')
-        .select('*')
-        .order('name', { ascending: true });
-
+      const { data, error } = await supabase.from('materials').select('*').order('name');
       if (error) throw error;
-      setMaterials(data);
-
-      const categoriesObj = data.reduce((acc, material) => {
-        if (material.category) {
-          if (!acc[material.category]) {
-            acc[material.category] = new Set();
-          }
-          if (material.subcategory) {
-            acc[material.category].add(material.subcategory);
-          }
+      const filteredData = data.filter(material => material.name !== "Ac");
+      setMaterials(filteredData);
+      const categoriesObj = filteredData.reduce((acc, { category, subcategory }) => {
+        if (category) {
+          if (!acc[category]) acc[category] = new Set();
+          if (subcategory) acc[category].add(subcategory);
         }
         return acc;
       }, {});
-
       Object.keys(categoriesObj).forEach(category => {
         categoriesObj[category] = Array.from(categoriesObj[category]).sort();
       });
-
       setCategories(categoriesObj);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -713,52 +505,35 @@ export default function MaterialsPage() {
 
   useEffect(() => {
     fetchMaterials();
-
-    const subscription = supabase
-      .channel('materials_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, (payload) => {
-        console.log('Change received!', payload);
-        fetchMaterials();
-      })
+    const subscription = supabase.channel('materials_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, fetchMaterials)
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    return () => supabase.removeChannel(subscription);
   }, [fetchMaterials, supabase]);
 
   useEffect(() => {
     const filtered = materials.filter(material => {
       const categoryMatch = selectedCategory === 'all' || material.category === selectedCategory;
       const subcategoryMatch = selectedSubcategory === 'all' || material.subcategory === selectedSubcategory;
-      const searchMatch = (
+      const searchMatch = searchTerm === '' || (
         (advancedSearch.inTitle && material.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (advancedSearch.inDescription && material.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (advancedSearch.inProperties && JSON.stringify(material.properties).toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      return categoryMatch && subcategoryMatch && (searchTerm === '' || searchMatch);
+      return categoryMatch && subcategoryMatch && searchMatch;
     });
     setFilteredMaterials(filtered);
   }, [materials, selectedCategory, selectedSubcategory, searchTerm, advancedSearch]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Filtering is now handled in the useEffect above
-  };
-
   const resetFilters = () => {
     setSelectedCategory('all');
     setSelectedSubcategory('all');
-    setAdvancedSearch({
-      inTitle: true,
-      inDescription: false,
-      inProperties: false,
-    });
+    setAdvancedSearch({ inTitle: true, inDescription: false, inProperties: false });
     setSearchTerm('');
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 flex flex-col md:flex-row">
       <div className="flex-grow">
         <div className="flex flex-col mb-6">
           <h1 className="text-3xl font-bold text-primary mb-4">Materials Library</h1>
@@ -769,11 +544,7 @@ export default function MaterialsPage() {
                 <TabsTrigger value="table"><List className="mr-2 h-4 w-4" />Table</TabsTrigger>
               </TabsList>
             </Tabs>
-            <SearchBar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              handleSearch={handleSearch}
-            />
+            <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} handleSearch={(e) => e.preventDefault()} />
             <Button onClick={() => setShowFilters(!showFilters)} variant="outline" className="md:hidden">
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </Button>
@@ -781,53 +552,38 @@ export default function MaterialsPage() {
         </div>
         {error && <div className="text-red-500 mb-4">Error: {error}</div>}
         {loading ? (
-          <div>Loading...</div>
+          <div></div>
         ) : (
           <AnimatePresence>
             {view === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredMaterials.map((material) => (
-                  <motion.div
-                    key={material.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  <motion.div key={material.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
                     <MaterialCard material={material} />
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
                 <table className="w-full">
                   <thead>
                     <tr>
                       <th className="text-left p-2">Name</th>
-                      <th className="text-left p-2">Description</th>
-                      <th className="text-left p-2">Category</th>
-                      <th className="text-left p-2">Subcategory</th>
+                      <th className="text-left p-2 hidden sm:table-cell">Description</th>
+                      <th className="text-left p-2 hidden sm:table-cell">Category</th>
+                      <th className="text-left p-2 hidden sm:table-cell">Subcategory</th>
                       <th className="text-left p-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredMaterials.map((material) => (
-                      <motion.tr
-                        key={material.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="border-t"
-                      >
+                      <motion.tr key={material.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="border-t">
                         <td className="p-2">{material.name}</td>
-                        <td className="p-2">{material.description}</td>
-                        <td className="p-2">{material.category}</td>
-                        <td className="p-2">{material.subcategory}</td>
+                        <td className="p-2 hidden sm:table-cell">{truncateDescription(material.description, 100)}</td>
+                        <td className="p-2 hidden sm:table-cell">{material.category}</td>
+                        <td className="p-2 hidden sm:table-cell">{material.subcategory}</td>
                         <td className="p-2">
-                          <Link href={`/materials/${material.slug}`}>
-                            <Button size="sm" variant="outline">View Details</Button>
-                          </Link>
+                          <Link href={`/materials/${material.slug}`}><Button size="sm" variant="outline">View</Button></Link>
                         </td>
                       </motion.tr>
                     ))}
@@ -838,19 +594,41 @@ export default function MaterialsPage() {
           </AnimatePresence>
         )}
       </div>
-      <Filters
-        categories={categories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedSubcategory={selectedSubcategory}
-        setSelectedSubcategory={setSelectedSubcategory}
-        advancedSearch={advancedSearch}
-        setAdvancedSearch={setAdvancedSearch}
-        resetFilters={resetFilters}
-        showFilters={showFilters}
-      />
+      <div className={`md:hidden fixed inset-0  backdrop-blur-sm z-50 transition-opacity ${showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className={`fixed inset-y-0 right-0 w-3/4 bg-background shadow-xl transition-transform ${showFilters ? 'translate-x-0' : 'translate-x-full'}`}>
+          <Filters
+            categories={categories}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            setSelectedSubcategory={setSelectedSubcategory}
+            advancedSearch={advancedSearch}
+            setAdvancedSearch={setAdvancedSearch}
+            resetFilters={resetFilters}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+          />
+        </div>
+      </div>
+      <div className="hidden md:block">
+        <Filters
+          categories={categories}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          selectedSubcategory={selectedSubcategory}
+          setSelectedSubcategory={setSelectedSubcategory}
+          advancedSearch={advancedSearch}
+          setAdvancedSearch={setAdvancedSearch}
+          resetFilters={resetFilters}
+          showFilters={showFilters}
+        />
+      </div>
     </div>
   );
+}
+
+function truncateDescription(description, maxLength) {
+  return description.length <= maxLength ? description : description.substr(0, maxLength) + '...';
 }
 
 /./matlas-wiki/app/profile/page.js
@@ -1203,8 +981,8 @@ export function MaterialCard({ material }) {
           </div>
         )}
       </div>
-      <div className="flex flex-col flex-grow p-4">
-        <CardHeader className="p-0 mb-2">
+      <div className="flex flex-col flex-grow p-2">
+        <CardHeader className="p-0 ">
           <CardTitle className="text-lg">{material.name}</CardTitle>
         </CardHeader>
         <CardContent className="p-0 flex flex-col flex-grow">
@@ -1270,6 +1048,7 @@ export default function RootLayout({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(true);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
 
@@ -1282,8 +1061,17 @@ export default function RootLayout({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
 
+    const handleScroll = () => {
+      const st = window.pageYOffset || document.documentElement.scrollTop;
+      setIsMenuVisible(st < lastScrollTop.current);
+      lastScrollTop.current = st <= 0 ? 0 : st;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
+      window.removeEventListener('scroll', handleScroll);
       subscription.unsubscribe();
     };
   }, [supabase.auth]);
@@ -1332,7 +1120,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
       <SessionContextProvider supabaseClient={supabase}>
         <body className="flex h-screen bg-background text-foreground antialiased">
-          <aside className={`fixed inset-y-0 z-30 flex flex-col justify-between bg-card text-card-foreground w-16 md:w-20 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+          <aside className={`fixed inset-y-0 z-30 flex flex-col justify-between bg-card text-card-foreground w-16 md:w-20 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isMenuVisible ? '' : '-translate-y-full'}`}>
             <div className="flex flex-col items-center mt-4 space-y-4">
               <Link href="/" className="block mb-4">
                 <Image
@@ -1397,7 +1185,7 @@ export default function RootLayout({ children }) {
                 <Menu className="h-6 w-6" />
               </Button>
             </header>
-            <main className="flex-grow overflow-auto p-6">
+            <main className="flex-grow overflow-auto">
               {children}
             </main>
           </div>
@@ -1562,7 +1350,7 @@ export default function HomePage() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2"
         >
           {randomMaterials.map((material, index) => (
             <motion.div
@@ -1589,7 +1377,7 @@ export default function HomePage() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1.4, duration: 0.5 }}
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12"
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"
       >
         {Object.entries(categories).map(([category, subcategories], index) => (
           <motion.div

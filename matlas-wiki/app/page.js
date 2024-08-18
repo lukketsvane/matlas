@@ -8,8 +8,39 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Search } from 'lucide-react';
-import { MaterialCard } from '@/components/MaterialCard';
 import { motion } from 'framer-motion';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
+
+const MaterialCard = ({ material }) => (
+  <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
+    <div className="h-40 relative">
+      {material.header_image ? (
+        <Image 
+          src={material.header_image}
+          alt={material.name}
+          layout="fill"
+          objectFit="cover"
+          className="rounded-t-lg"
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
+          <span className="text-gray-400">No image</span>
+        </div>
+      )}
+    </div>
+    <div className="flex flex-col flex-grow p-4">
+      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
+      <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
+        <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
+      </div>
+      <div className="flex justify-between items-center mt-auto">
+        <Button variant="outline" size="sm" asChild>
+          <a href={`/materials/${material.slug}`}>View Details</a>
+        </Button>
+      </div>
+    </div>
+  </Card>
+);
 
 export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
