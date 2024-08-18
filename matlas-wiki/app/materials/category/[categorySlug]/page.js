@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { MaterialCard } from '@/components/MaterialCard';
@@ -83,7 +82,7 @@ export default function CategoryPage({ params }) {
           <h2 className="text-xl font-semibold mb-2">Subcategories</h2>
           <div className="flex flex-wrap gap-2">
             {subcategories.map(subcategory => (
-              <Link key={subcategory} href={`/materials/category/${categorySlug}/${subcategory}`}>
+              <Link key={subcategory} href={`/materials/category/${categorySlug}/${subcategory.replace(/ /g, '-')}`}>
                 <Button variant="outline">{subcategory}</Button>
               </Link>
             ))}

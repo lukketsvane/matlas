@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    --font-sans: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: 'Manrope', system-ui, sans-serif;
     
     --background: 0 0% 100%;
-    --foreground: 220 14% 40%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 170 64% 38%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 222.2 84% 4.9%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
@@ -24,26 +24,18 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-
-    --pink: 324 100% 78%;
-    --purple: 226 69% 74%;
-    --green: 170 64% 38%;
-    --orange: 45 100% 50%;
-    --red: 6 75% 49%;
-    --yellow: 60 89% 57%;
   }
-
   .dark {
     --background: 222.2 84% 4.9%;
-    --foreground: 210 20% 80%;
+    --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 170 64% 38%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -54,7 +46,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -62,22 +54,7 @@
   * {
     @apply border-border;
   }
-
-  html {
-    @apply antialiased;
-  }
-
   body {
     @apply bg-background text-foreground font-sans;
-  }
-
-  ::selection {
-    @apply bg-primary/20 text-foreground;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
   }
 }
