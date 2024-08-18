@@ -69,4 +69,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Shadcn UI](https://ui.shadcn.com/)
 
+<<<<<<< HEAD
 For more information, visit our [website](https://matlas-wiki.vercel.app) or contact us at support@matlaswiki.com.
+=======
+For more information, visit our [website](https://matlas-wiki.vercel.app) or contact us at support@matlaswiki.com.
+>>>>>>> 2089316d94f17dee71c6f9c6d2b55425e9b36374
