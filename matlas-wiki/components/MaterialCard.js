@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSession } from '@supabase/auth-helpers-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 export function MaterialCard({ material }) {
   const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
@@ -17,12 +18,6 @@ export function MaterialCard({ material }) {
   const [selectedProject, setSelectedProject] = useState(null);
   const session = useSession();
   const supabase = createClientComponentClient();
-
-  const stripHtmlTags = (html) => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
-  };
 
   const fetchUserProjects = async () => {
     if (!session) return;
@@ -63,6 +58,9 @@ export function MaterialCard({ material }) {
     }
   };
 
+  const categorySlug = encodeURIComponent(material.category);
+  const subcategorySlug = encodeURIComponent(material.subcategory.replace(/ /g, '-'));
+
   return (
     <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
       <div className="h-32 relative">
@@ -85,11 +83,11 @@ export function MaterialCard({ material }) {
           <CardTitle className="text-lg">{material.name}</CardTitle>
         </CardHeader>
         <CardContent className="p-0 flex flex-col flex-grow">
-          <p className="text-sm text-muted-foreground mb-4 flex-grow">
-            {stripHtmlTags(material.description).substring(0, 100)}...
-          </p>
+          <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden max-h-20">
+            <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
+          </div>
           <div className="flex justify-between items-center mt-auto">
-            <Link href={`/materials/${material.slug}`}>
+            <Link href={`/materials/category/${categorySlug}/${subcategorySlug}/${material.slug}`}>
               <Button variant="outline" size="sm">View Details</Button>
             </Link>
             {session && (

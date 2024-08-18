@@ -91,7 +91,7 @@ const MaterialCard = ({ material }) => {
         </div>
         <div className="flex justify-between items-center mt-auto">
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/materials/category/${material.category}/${material.subcategory}/${material.slug}`}>
+            <Link href={`/materials/category/${material.category}/${material.subcategory.replace(/ /g, '-')}/${material.slug}`}>
               View Details
             </Link>
           </Button>
@@ -133,10 +133,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const fetchData = async () => {
-      const supabase = createClientComponentClient();
       setLoading(true);
       setError(null);
 
@@ -181,7 +181,7 @@ export default function HomePage() {
     };
 
     fetchData();
-  }, []);
+  }, [supabase]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -193,18 +193,24 @@ export default function HomePage() {
   };
 
   const handleFeelingLucky = async () => {
-    const supabase = createClientComponentClient();
     try {
+      const { count, error: countError } = await supabase
+        .from('materials')
+        .select('*', { count: 'exact', head: true });
+
+      if (countError) throw countError;
+
+      const randomIndex = Math.floor(Math.random() * count);
+
       const { data, error } = await supabase
         .from('materials')
         .select('slug, category, subcategory')
-        .limit(1)
-        .order('RANDOM()');
+        .range(randomIndex, randomIndex);
 
       if (error) throw error;
       if (data && data.length > 0) {
         const material = data[0];
-        router.push(`/materials/category/${material.category}/${material.subcategory}/${material.slug}`);
+        router.push(`/materials/category/${encodeURIComponent(material.category)}/${encodeURIComponent(material.subcategory.replace(/ /g, '-'))}/${material.slug}`);
       }
     } catch (err) {
       console.error('Error fetching random material:', err);

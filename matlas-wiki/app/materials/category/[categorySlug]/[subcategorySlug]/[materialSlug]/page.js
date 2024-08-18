@@ -29,24 +29,26 @@ export default function MaterialPage({ params }) {
   async function fetchMaterial() {
     try {
       setLoading(true);
+      const decodedCategory = decodeURIComponent(categorySlug);
+      const decodedSubcategory = decodeURIComponent(subcategorySlug.replace(/-/g, ' '));
       const { data, error } = await supabase
         .from('materials')
         .select('*')
         .eq('slug', materialSlug)
-        .eq('category', categorySlug)
-        .eq('subcategory', subcategorySlug.replace(/-/g, ' '))
+        .eq('category', decodedCategory)
+        .eq('subcategory', decodedSubcategory)
         .single();
       if (error) throw error;
       setMaterial(data);
     } catch (error) {
+      console.error('Error fetching material:', error);
       setError('Failed to fetch material');
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading) return <div className="flex justify-center items-center h-screen"></div>;
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   if (error) return <div className="px-4 py-8">Error: {error}</div>;
   if (!material) return <div className="px-4 py-8">Material not found</div>;
 
@@ -82,8 +84,8 @@ export default function MaterialPage({ params }) {
           </div>
         </div>
         <p className="mb-4">
-          Category: <Link href={`/materials/category/${categorySlug}`} className="text-blue-500 hover:underline">{categorySlug}</Link> &gt; 
-          <Link href={`/materials/category/${categorySlug}/${subcategorySlug}`} className="text-blue-500 hover:underline">{subcategorySlug.replace(/-/g, ' ')}</Link>
+          Category: <Link href={`/materials/category/${categorySlug}`} className="text-blue-500 hover:underline">{material.category}</Link> &gt; 
+          <Link href={`/materials/category/${categorySlug}/${subcategorySlug}`} className="text-blue-500 hover:underline">{material.subcategory}</Link>
         </p>
         <MarkdownRenderer content={material.description} />
         <MaterialTabs material={material} />
