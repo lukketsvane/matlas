@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -17,7 +18,7 @@ import { generateSlug } from '@/lib/utils';
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
-const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '' };
+const INITIAL_MATERIAL = { name: '', description: '', properties: {}, usage_examples: [], edit_history: [], related_materials: [], header_image: null, slug: '', category: '', subcategory: '' };
 
 const tabOptions = [
   { value: "basic-info", label: "Basic Info" },
@@ -29,7 +30,7 @@ const tabOptions = [
 
 export default function EditMaterialPage({ params }) {
   const router = useRouter();
-  const { slug } = params;
+  const { categorySlug, subcategorySlug, materialSlug } = params;
   const session = useSession();
   const supabase = createClientComponentClient();
   const [material, setMaterial] = useState(INITIAL_MATERIAL);
@@ -39,13 +40,19 @@ export default function EditMaterialPage({ params }) {
   const [error, setError] = useState(null);
 
   const fetchMaterial = useCallback(async () => {
-    if (slug === 'new') return;
+    if (materialSlug === 'new') return;
     setLoading(true);
-    const { data, error } = await supabase.from('materials').select('*').eq('slug', slug).single();
+    const { data, error } = await supabase
+      .from('materials')
+      .select('*')
+      .eq('slug', materialSlug)
+      .eq('category', categorySlug)
+      .eq('subcategory', subcategorySlug.replace(/-/g, ' '))
+      .single();
     if (error) setError('Failed to fetch material data');
     else setMaterial(data);
     setLoading(false);
-  }, [slug, supabase]);
+  }, [categorySlug, subcategorySlug, materialSlug, supabase]);
 
   useEffect(() => { fetchMaterial(); }, [fetchMaterial]);
 
@@ -53,7 +60,7 @@ export default function EditMaterialPage({ params }) {
     if (!session) { setError('You must be logged in to save materials'); return; }
     setLoading(true);
     setError(null);
-    let updatedMaterial = { ...material, slug: generateSlug(material.name) };
+    let updatedMaterial = { ...material, slug: generateSlug(material.name), category: categorySlug, subcategory: subcategorySlug.replace(/-/g, ' ') };
     if (headerImageFile) {
       const { data, error } = await uploadHeaderImage(updatedMaterial.slug);
       if (error) { setError(`Failed to upload header image: ${error.message}`); setLoading(false); return; }
@@ -62,7 +69,7 @@ export default function EditMaterialPage({ params }) {
     try {
       const { data, error } = await supabase.from('materials').upsert(updatedMaterial).select().single();
       if (error) throw error;
-      router.push(`/materials/${data.slug}`);
+      router.push(`/materials/category/${categorySlug}/${subcategorySlug}/${data.slug}`);
     } catch (error) {
       setError(`Failed to save material: ${error.message}`);
     }
@@ -224,7 +231,7 @@ export default function EditMaterialPage({ params }) {
       </Tabs>
 
       <div className="flex justify-between mt-4">
-        <Button variant="outline" onClick={() => router.push(`/materials/${slug === 'new' ? '' : slug}`)}>Cancel</Button>
+        <Button variant="outline" onClick={() => router.push(`/materials/category/${categorySlug}/${subcategorySlug}/${materialSlug === 'new' ? '' : materialSlug}`)}>Cancel</Button>
         <Button onClick={handleSave} disabled={loading}>
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save

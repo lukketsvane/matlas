@@ -1,6 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/no-unescaped-entities */
-/* eslint-disable @next/next/no-img-element */
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -22,8 +19,6 @@ export default function AuthPage() {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem('userEmail');
-    if (storedEmail) { setEmail(storedEmail); setActiveTab('signin'); }
     checkUser();
   }, []);
 
@@ -43,7 +38,6 @@ export default function AuthPage() {
       });
       if (error) throw error;
       setMessage({ type: 'success', content: "Check your email for the confirmation link." });
-      localStorage.setItem('userEmail', email);
     } catch (error) {
       setMessage({ type: 'error', content: error.message });
     } finally {
@@ -58,7 +52,6 @@ export default function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      localStorage.setItem('userEmail', email);
       router.push('/profile');
     } catch (error) {
       setMessage({ type: 'error', content: error.message });
@@ -68,15 +61,23 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col justify-start bg-background py-6 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-primary">Materials Wiki</h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">The free online encyclopedia for materials that anyone can edit.</p>
+    <div className="flex min-h-screen">
+      <div className="hidden lg:flex flex-col justify-between bg-black text-white w-1/2 p-12">
+        <div>
+          <h1 className="text-2xl font-bold">Matlas</h1>
+        </div>
+        <div className="text-2xl font-bold">
+          The free online encyclopedia for materials that anyone can edit.
+        </div>
+        <div></div>
       </div>
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-card px-4 py-8 shadow sm:rounded-lg sm:px-10">
+      <div className="flex flex-col justify-center w-full lg:w-1/2 p-8">
+        <div className="max-w-md w-full mx-auto">
+          <h2 className="text-3xl font-bold mb-6">
+            {activeTab === 'signup' ? 'Create an account' : 'Sign in to your account'}
+          </h2>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 gap-4">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
               <TabsTrigger value="signin">Sign In</TabsTrigger>
             </TabsList>
@@ -88,7 +89,7 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <Label htmlFor="email">Email address</Label>
-                  <Input id="email" type="email" placeholder="your@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input id="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="password">Password</Label>
@@ -100,7 +101,7 @@ export default function AuthPage() {
                   </Alert>
                 )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Signing up...' : 'Sign Up'}
+                  {isLoading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>
             </TabsContent>
@@ -108,7 +109,7 @@ export default function AuthPage() {
               <form className="space-y-4" onSubmit={handleSignIn}>
                 <div>
                   <Label htmlFor="email">Email address</Label>
-                  <Input id="email" type="email" placeholder="your@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input id="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="password">Password</Label>
@@ -125,6 +126,11 @@ export default function AuthPage() {
               </form>
             </TabsContent>
           </Tabs>
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            By continuing, you agree to our{' '}
+            <a href="#" className="underline">Terms of Service</a> and{' '}
+            <a href="#" className="underline">Privacy Policy</a>.
+          </p>
         </div>
       </div>
     </div>

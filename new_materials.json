@@ -1,0 +1,312 @@
+[
+    {
+      "name": "Aluminum 6061-T6"
+    },
+    {
+      "name": "Invar 36"
+    },
+    {
+      "name": "AISI 4140 Alloy Steel"
+    },
+    {
+      "name": "Beryllium Copper"
+    },
+    {
+      "name": "Chromoly Steel"
+    },
+    {
+      "name": "Carbon Fiber Reinforced Plastic (CFRP)"
+    },
+    {
+      "name": "Sapphire (Al2O3)"
+    },
+    {
+      "name": "Boron Fiber"
+    },
+    {
+      "name": "AISI 8620 Steel"
+    },
+    {
+      "name": "Glass Fiber Reinforced Plastic (GFRP)"
+    },
+    {
+      "name": "Aluminum Bronze"
+    },
+    {
+      "name": "Brass (Cu-Zn Alloy)"
+    },
+    {
+      "name": "Copper-Nickel Alloy (Cu-Ni)"
+    },
+    {
+      "name": "Ductile Cast Iron"
+    },
+    {
+      "name": "Gadolinium"
+    },
+    {
+      "name": "Hastelloy C-276"
+    },
+    {
+      "name": "Inconel 625"
+    },
+    {
+      "name": "Monel 400"
+    },
+    {
+      "name": "Nickel 718"
+    },
+    {
+      "name": "Silicon Steel"
+    },
+    {
+      "name": "Tool Steel D2"
+    },
+    {
+      "name": "Aluminum 2024-T3"
+    },
+    {
+      "name": "Zirconium (Zr)"
+    },
+    {
+      "name": "Polyamide (Nylon)"
+    },
+    {
+      "name": "Polyethylene Terephthalate (PET)"
+    },
+    {
+      "name": "Polyvinyl Chloride (PVC)"
+    },
+    {
+      "name": "Polycarbonate (PC)"
+    },
+    {
+      "name": "Polylactic Acid (PLA)"
+    },
+    {
+      "name": "Polyoxymethylene (POM)"
+    },
+    {
+      "name": "Polypropylene (PP)"
+    },
+    {
+      "name": "Polystyrene (PS)"
+    },
+    {
+      "name": "Polytetrafluoroethylene (PTFE)"
+    },
+    {
+      "name": "Thermoplastic Polyurethane (TPU)"
+    },
+    {
+      "name": "Acrylonitrile Butadiene Styrene (ABS)"
+    },
+    {
+      "name": "Polyetherimide (PEI)"
+    },
+    {
+      "name": "Polybutylene Terephthalate (PBT)"
+    },
+    {
+      "name": "Polyether Ether Ketone (PEEK)"
+    },
+    {
+      "name": "Polyamide-Imide (PAI)"
+    },
+    {
+      "name": "Polyvinylidene Fluoride (PVDF)"
+    },
+    {
+      "name": "Polysulfone (PSU)"
+    },
+    {
+      "name": "Epoxy Fiber Reinforced Plastic"
+    },
+    {
+      "name": "High-Density Polyethylene (HDPE)"
+    },
+    {
+      "name": "Low-Density Polyethylene (LDPE)"
+    },
+    {
+      "name": "Medium-Density Polyethylene (MDPE)"
+    },
+    {
+      "name": "AISI 9310 Alloy Steel"
+    },
+    {
+      "name": "Magnetostrictive Material (Terfenol-D)"
+    },
+    {
+      "name": "Magnesium AZ31B"
+    },
+    {
+      "name": "Aluminum 5083"
+    },
+    {
+      "name": "Aluminum 3003"
+    },
+    {
+      "name": "Silicon Carbide (SiC) Whiskers"
+    },
+    {
+      "name": "Polyimide (PI)"
+    },
+    {
+      "name": "Polysiloxane (Silicone)"
+    },
+    {
+      "name": "Phosphor Bronze"
+    },
+    {
+      "name": "Titanium Grade 2"
+    },
+    {
+      "name": "Zirconium Diboride (ZrB2)"
+    },
+    {
+      "name": "Calcium Fluoride (CaF2)"
+    },
+    {
+      "name": "Tungsten Carbide (WC)"
+    },
+    {
+      "name": "AISI 316 Stainless Steel"
+    },
+    {
+      "name": "Aluminum 1100"
+    },
+    {
+      "name": "Cobalt-Chrome Alloy"
+    },
+    {
+      "name": "Molybdenum Disilicide (MoSi2)"
+    },
+    {
+      "name": "Nickel-Aluminum Bronze"
+    },
+    {
+      "name": "Nickel Titanium (NiTi)"
+    },
+    {
+      "name": "Silicon Nitride (Si3N4) Ceramics"
+    },
+    {
+      "name": "Samarium-Cobalt Magnets"
+    },
+    {
+      "name": "Neodymium Iron Boron (NdFeB) Magnets"
+    },
+    {
+      "name": "High Carbon Steel"
+    },
+    {
+      "name": "Niobium-Tin (Nb3Sn) Superconductor"
+    },
+    {
+      "name": "Stainless Steel 301"
+    },
+    {
+      "name": "Cobalt-Chromium-Molybdenum Alloy"
+    },
+    {
+      "name": "Tantalum (Ta)"
+    },
+    {
+      "name": "Titanium Nitride (TiN)"
+    },
+    {
+      "name": "Zinc Oxide (ZnO)"
+    },
+    {
+      "name": "Gallium Arsenide (GaAs)"
+    },
+    {
+      "name": "Cadmium Telluride (CdTe)"
+    },
+    {
+      "name": "Indium Tin Oxide (ITO)"
+    },
+    {
+      "name": "Lanthanum Hexaboride (LaB6)"
+    },
+    {
+      "name": "Lithium Aluminum Silicate (LAS)"
+    },
+    {
+      "name": "Cerium Oxide (CeO2)"
+    },
+    {
+      "name": "Magnesium Zirconate"
+    },
+    {
+      "name": "Niobium (Nb)"
+    },
+    {
+      "name": "Osmium (Os)"
+    },
+    {
+      "name": "Rhenium (Re)"
+    },
+    {
+      "name": "Rhodium (Rh)"
+    },
+    {
+      "name": "Strontium Titanate (SrTiO3)"
+    },
+    {
+      "name": "Technetium (Tc)"
+    },
+    {
+      "name": "Thulium (Tm)"
+    },
+    {
+      "name": "Uranium Dioxide (UO2)"
+    },
+    {
+      "name": "Vanadium Pentoxide (V2O5)"
+    },
+    {
+      "name": "Ytterbium (Yb)"
+    },
+    {
+      "name": "Zirconium Silicate (ZrSiO4)"
+    },
+    {
+      "name": "Gallium Nitride (GaN)"
+    },
+    {
+      "name": "Graphene Oxide"
+    },
+    {
+      "name": "Manganese Dioxide (MnO2)"
+    },
+    {
+      "name": "Iron-Nickel Alloy (Invar)"
+    },
+    {
+      "name": "Polyphenylene Ether (PPE)"
+    },
+    {
+      "name": "Polyaniline (PANI)"
+    },
+    {
+      "name": "Cellulose Acetate"
+    },
+    {
+      "name": "Polyvinyl Butyral (PVB)"
+    },
+    {
+      "name": "Chlorinated Polyvinyl Chloride (CPVC)"
+    },
+    {
+      "name": "Polyethylene Naphthalate (PEN)"
+    },
+    {
+      "name": "Nylon 12"
+    },
+    {
+      "name": "Polyvinyl Acetate (PVA)"
+    }
+  ]
+  

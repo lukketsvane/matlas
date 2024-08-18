@@ -61,7 +61,7 @@ export default function RootLayout({ children }) {
             <Link href={href} className={cn(
               "p-2 rounded-md transition-colors duration-200",
               isActive
-                ? "bg-primary text-background dark:text-foreground"
+                ? "bg-primary text-primary-foreground"
                 : "text-foreground hover:bg-accent hover:text-accent-foreground"
             )} onClick={() => setIsSidebarOpen(false)}>
               <Icon className="h-6 w-6" />
@@ -86,7 +86,7 @@ export default function RootLayout({ children }) {
               <NavLink href="/discover" icon={Search} tooltip="Discover" />
               <NavLink href="/materials" icon={Library} tooltip="Materials" />
               {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
-              {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
+              {user && <NavLink href="/materials/category/new/new/new/edit" icon={PlusCircle} tooltip="Add Material" />}
             </div>
             <div className="flex flex-col items-center mb-4 space-y-4">
               {user && (

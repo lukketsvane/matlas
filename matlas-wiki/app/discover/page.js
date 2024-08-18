@@ -48,7 +48,7 @@ const MaterialCard = ({ material }) => (
         <MarkdownRenderer content={material.description.substring(0, 100) + '...'} />
       </div>
       <div className="flex justify-between items-center mt-auto">
-        <Link href={`/materials/${material.slug}`}>
+        <Link href={`/materials/category/${material.category}/${material.subcategory.replace(/ /g, '-')}/${material.slug}`}>
           <Button variant="outline" size="sm">View Details</Button>
         </Link>
         <Button variant="ghost" size="icon">
@@ -77,7 +77,7 @@ export default function DiscoverPage() {
     try {
       const { data, error } = await supabase
         .from('materials')
-        .select('id, name, description, header_image, slug, category')
+        .select('id, name, description, header_image, slug, category, subcategory')
         .order('name');
   
       if (error) throw new Error(error.message);

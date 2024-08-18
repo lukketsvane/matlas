@@ -11,6 +11,12 @@ module.exports = {
         sans: ['var(--font-sans)', ...fontFamily.sans],
       },
       colors: {
+        pink: 'hsl(var(--pink))',
+        purple: 'hsl(var(--purple))',
+        green: 'hsl(var(--green))',
+        orange: 'hsl(var(--orange))',
+        red: 'hsl(var(--red))',
+        yellow: 'hsl(var(--yellow))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -41,3 +47,4 @@ module.exports = {
   },
   plugins: [require('tailwindcss-animate')],
 };
+

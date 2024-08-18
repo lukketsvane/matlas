@@ -452,7 +452,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 /./matlas-wiki/app/materials/page.js
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
@@ -462,9 +463,10 @@ import { Grid, List, Plus, Search, Filter } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import dynamic from 'next/dynamic';
 
 const MaterialCard = ({ material }) => (
   <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
@@ -483,8 +485,8 @@ const MaterialCard = ({ material }) => (
         </div>
       )}
     </div>
-    <div className="flex flex-col flex-grow p-4">
-      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
+    <CardContent className="flex flex-col flex-grow p-4">
+      <CardTitle className="text-lg font-bold mb-2">{material.name}</CardTitle>
       <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
         <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
       </div>
@@ -496,22 +498,22 @@ const MaterialCard = ({ material }) => (
           <Plus className="h-4 w-4" />
         </Button>
       </div>
-    </div>
+    </CardContent>
   </Card>
 );
 
-export default function MaterialsPage() {
+const MaterialsPageContent = () => {
+  const searchParams = useSearchParams();
   const [materials, setMaterials] = useState([]);
   const [filteredMaterials, setFilteredMaterials] = useState([]);
   const [categories, setCategories] = useState({});
   const [view, setView] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [advancedSearch, setAdvancedSearch] = useState({ inTitle: true, inDescription: false, inProperties: false });
-  const [showFilters, setShowFilters] = useState(false);
   const supabase = createClientComponentClient();
 
   const fetchMaterials = useCallback(async () => {
@@ -572,6 +574,7 @@ export default function MaterialsPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    // You can add additional logic here if needed
   };
 
   return (
@@ -612,8 +615,6 @@ export default function MaterialsPage() {
               advancedSearch={advancedSearch}
               setAdvancedSearch={setAdvancedSearch}
               resetFilters={resetFilters}
-              showFilters={showFilters}
-              setShowFilters={setShowFilters}
             />
           </SheetContent>
         </Sheet>
@@ -630,25 +631,11 @@ export default function MaterialsPage() {
 
       {error && <div className="text-red-500 mb-4">Error: {error}</div>}
       
-      <div className="flex flex-col md:flex-row">
-        <div className="hidden md:block w-1/4 pr-4">
-          <Filters
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            setSelectedSubcategory={setSelectedSubcategory}
-            advancedSearch={advancedSearch}
-            setAdvancedSearch={setAdvancedSearch}
-            resetFilters={resetFilters}
-            showFilters={showFilters}
-          />
-        </div>
-        
+      <div className="flex flex-col md:flex-row gap-6">
         <div className="w-full md:w-3/4">
           <AnimatePresence>
             {loading ? (
-              <div>Loading...</div>
+              <div></div>
             ) : view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredMaterials.map((material) => (
@@ -658,7 +645,7 @@ export default function MaterialsPage() {
                 ))}
               </div>
             ) : (
-              <div className="overflow-x-auto -mx-2 sm:mx-0">
+              <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr>
@@ -687,13 +674,722 @@ export default function MaterialsPage() {
             )}
           </AnimatePresence>
         </div>
+        
+        <div className="hidden md:block w-1/4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Filters</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Filters
+                categories={categories}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                selectedSubcategory={selectedSubcategory}
+                setSelectedSubcategory={setSelectedSubcategory}
+                advancedSearch={advancedSearch}
+                setAdvancedSearch={setAdvancedSearch}
+                resetFilters={resetFilters}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function truncateDescription(description, maxLength) {
+  return description.length <= maxLength ? description : description.substr(0, maxLength) + '...';
+}
+
+const MaterialsPage = dynamic(() => Promise.resolve(MaterialsPageContent), {
+  ssr: false,
+  loading: () => <p></p>,
+});
+
+export default function MaterialsPageWrapper() {
+  return (
+    <Suspense fallback={<div></div>}>
+      <MaterialsPage />
+    </Suspense>
+  );
+}
+
+/./matlas-wiki/app/info/page.js
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable react/no-unescaped-entities */
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ArrowRight, Book, Users, Lightbulb, Twitter, Facebook, Youtube, Linkedin, Instagram } from 'lucide-react';
+
+export default function AboutPage() {
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <motion.div 
+        className="flex items-center justify-center mb-8"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Image
+          src="/mat-driven.jpg"
+          alt="MatLas Wiki Logo"
+          width={200}
+          height={200}
+        />
+      </motion.div>
+
+      <motion.h1 
+        className="text-4xl font-bold mb-6 text-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        About MatLas Wiki
+      </motion.h1>
+
+      <p className="mb-6 text-center">
+        MatLas Wiki serves as a design agency and materials library, focusing on material innovation and bridging the gap between material developers and industries.
+      </p>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="services">Services</TabsTrigger>
+          <TabsTrigger value="expertise">Expertise</TabsTrigger>
+          <TabsTrigger value="contact">Contact</TabsTrigger>
+        </TabsList>
+
+        <div className="flex flex-col md:flex-row">
+          <TabsContent value="overview" className="flex-1">
+            <motion.div {...fadeIn}>
+              <h2 className="text-2xl font-bold mb-4">Overview</h2>
+              <p className="mb-4">
+                MatLas Wiki connects industries with cutting-edge materials, offering resources to support innovation in areas like packaging, architecture, and fashion.
+              </p>
+              <p className="mb-4">
+                The platform's mission is to drive material innovation by facilitating strategic projects and providing access to curated materials and expertise.
+              </p>
+              <p>
+                MatLas Wiki aims to help industries explore and implement advanced materials to enhance their products and services.
+              </p>
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="services" className="flex-1">
+            <motion.div {...fadeIn}>
+              <h2 className="text-2xl font-bold mb-4">Services</h2>
+              <p className="mb-4">
+                A range of services is offered to optimize material use and application across industries.
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <Book className="mr-2 h-5 w-5 mt-1" />
+                  <div>
+                    <h3 className="font-semibold">Consulting</h3>
+                    <p>Tailored advice on material selection, sourcing, and application, considering factors like performance, sustainability, and cost.</p>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <Users className="mr-2 h-5 w-5 mt-1" />
+                  <div>
+                    <h3 className="font-semibold">Curation</h3>
+                    <p>Custom-curated material portfolios aligned with industry needs, brand ethos, and project goals.</p>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <Lightbulb className="mr-2 h-5 w-5 mt-1" />
+                  <div>
+                    <h3 className="font-semibold">Education</h3>
+                    <p>Workshops, seminars, and resources designed to keep teams informed about the latest in material innovations.</p>
+                  </div>
+                </li>
+              </ul>
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="expertise" className="flex-1">
+            <motion.div {...fadeIn}>
+              <h2 className="text-2xl font-bold mb-4">Expertise</h2>
+              <p className="mb-4">
+                MatLas Wiki combines design thinking and materials science to offer deep expertise in sustainable and cutting-edge materials, trend forecasting, and more.
+              </p>
+              <ul className="list-disc list-inside space-y-2 mb-4">
+                <li>In-depth knowledge of sustainable materials</li>
+                <li>Access to a global network of material experts</li>
+                <li>Trend forecasting and market intelligence</li>
+                <li>Comprehensive product and experience design</li>
+                <li>Specialized material sourcing and consulting</li>
+                <li>Sustainability assessments and life cycle analysis</li>
+                <li>Creative material application workshops</li>
+              </ul>
+              <p>
+                This expertise supports clients in anticipating future material needs and integrating innovative solutions into their projects.
+              </p>
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="contact" className="flex-1">
+            <motion.div {...fadeIn}>
+              <h2 className="text-2xl font-bold mb-4">Contact</h2>
+              <p className="mb-4">
+                MatLas Wiki operates from London, Dallas, and Bilbao, and is available for material consulting, partnership discussions, and educational inquiries.
+              </p>
+              <p className="mb-4">
+                Reach out for consultations, service information, partnership opportunities, or to learn more about workshops and other programs.
+              </p>
+              <Button>
+                Get in Touch <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </motion.div>
+          </TabsContent>
+        </div>
+      </Tabs>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+        className="mt-12"
+      >
+        <h2 className="text-2xl font-bold mb-4">Industry Applications</h2>
+        <p className="mb-4">
+          MatLas Wiki supports innovation in various sectors, including aerospace, fashion, architecture, and consumer electronics. The platform assists in material selection and application to enhance product development and sustainability efforts.
+        </p>
+        <p className="mb-4">
+          Examples include the adoption of biodegradable packaging, integration of advanced composites in automotive design, and development of wearable technology.
+        </p>
+        <p>
+          The goal is to enable industries to make informed material choices that lead to better products and sustainable practices.
+        </p>
+      </motion.div>
+
+      <motion.div 
+        className="mt-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+      >
+        <Separator className="my-8" />
+        <div className="flex justify-center space-x-6">
+          <Link href="#" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100">
+            <Twitter className="h-6 w-6" />
+          </Link>
+          <Link href="#" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100">
+            <Facebook className="h-6 w-6" />
+          </Link>
+          <Link href="#" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100">
+            <Youtube className="h-6 w-6" />
+          </Link>
+          <Link href="#" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100">
+            <Linkedin className="h-6 w-6" />
+          </Link>
+          <Link href="#" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100">
+            <Instagram className="h-6 w-6" />
+          </Link>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+
+/./matlas-wiki/app/profile/page.js
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Github, Twitter, Linkedin, Globe } from 'lucide-react';
+
+export default function ProfilePage() {
+  const [profile, setProfile] = useState(null);
+  const [contributions, setContributions] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [message, setMessage] = useState({ type: null, content: null });
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return router.push('/auth');
+
+    try {
+      const [profileData, contributionsData] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('contributions').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      ]);
+
+      if (profileData.data) setProfile(profileData.data);
+      if (contributionsData.data) setContributions(contributionsData.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setMessage({ type: 'error', content: 'Failed to load profile data. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e) => setProfile({ ...profile, [e.target.id]: e.target.value });
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setMessage({ type: null, content: null });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('profiles').upsert({ ...profile, id: user.id, updated_at: new Date() });
+    setMessage(error
+      ? { type: 'error', content: 'Failed to update profile. Please try again.' }
+      : { type: 'success', content: 'Profile updated successfully!' }
+    );
+    setIsEditing(false);
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      setProfile({ ...profile, avatar_url: publicUrl });
+      await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', profile.id);
+      setMessage({ type: 'success', content: 'Avatar updated successfully!' });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      setMessage({ type: 'error', content: 'Failed to upload avatar. Please try again.' });
+    }
+  };
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">Your Profile</h1>
+      {message.content && (
+        <Alert variant={message.type === 'error' ? "destructive" : "default"} className="mb-6">
+          <AlertDescription>{message.content}</AlertDescription>
+        </Alert>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleProfileUpdate} className="space-y-6">
+              <div className="flex items-center space-x-4">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={profile?.avatar_url} alt={profile?.name} />
+                  <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={!isEditing} />
+              </div>
+              <Tabs defaultValue="basic">
+                <TabsList>
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="social">Social Links</TabsTrigger>
+                </TabsList>
+                <TabsContent value="basic" className="space-y-4">
+                  {['name', 'email', 'bio', 'location', 'website'].map((field) => (
+                    <div key={field}>
+                      <Label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
+                      {field === 'bio' ? (
+                        <Textarea
+                          id={field}
+                          value={profile?.[field] || ''}
+                          onChange={handleChange}
+                          disabled={!isEditing || field === 'email'}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <Input
+                          id={field}
+                          value={profile?.[field] || ''}
+                          onChange={handleChange}
+                          disabled={!isEditing || field === 'email'}
+                          className="mt-1"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </TabsContent>
+                <TabsContent value="social" className="space-y-4">
+                  {['github_username', 'twitter_username', 'linkedin_url'].map((field) => (
+                    <div key={field}>
+                      <Label htmlFor={field}>{field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Label>
+                      <Input
+                        id={field}
+                        value={profile?.[field] || ''}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        className="mt-1"
+                      />
+                    </div>
+                  ))}
+                </TabsContent>
+              </Tabs>
+            </form>
+          </CardContent>
+          <CardFooter>
+            <Button type={isEditing ? "submit" : "button"} onClick={() => isEditing ? handleProfileUpdate() : setIsEditing(true)}>
+              {isEditing ? "Save Changes" : "Edit Profile"}
+            </Button>
+          </CardFooter>
+        </Card>
+        <div className="space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Social Links</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col space-y-2">
+              {profile?.github_username && (
+                <a href={`https://github.com/${profile.github_username}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-blue-500 hover:underline">
+                  <Github size={20} />
+                  <span>{profile.github_username}</span>
+                </a>
+              )}
+              {profile?.twitter_username && (
+                <a href={`https://twitter.com/${profile.twitter_username}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-blue-500 hover:underline">
+                  <Twitter size={20} />
+                  <span>{profile.twitter_username}</span>
+                </a>
+              )}
+              {profile?.linkedin_url && (
+                <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-blue-500 hover:underline">
+                  <Linkedin size={20} />
+                  <span>LinkedIn Profile</span>
+                </a>
+              )}
+              {profile?.website && (
+                <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-blue-500 hover:underline">
+                  <Globe size={20} />
+                  <span>Personal Website</span>
+                </a>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Contributions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {contributions.length > 0 ? (
+                <ul className="space-y-4">
+                  {contributions.map((contribution) => (
+                    <li key={contribution.id} className="border-b pb-4 last:border-b-0">
+                      <h3 className="font-semibold">{contribution.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(contribution.created_at).toLocaleDateString()}
+                      </p>
+                      <p className="mt-2">{contribution.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>You haven&apos;t made any contributions yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
 }
 
-function truncateDescription(description, maxLength) {
-  return description.length <= maxLength ? description : description.substr(0, maxLength) + '...';
+function ProfileSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <Skeleton className="h-12 w-64 mb-8" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+        <div className="space-y-8">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/./matlas-wiki/app/discover/page.js
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Filter, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import Image from 'next/image';
+import Link from 'next/link';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
+
+const SkeletonCard = () => (
+  <Card className="h-[200px] sm:h-[300px]">
+    <CardContent className="p-4">
+      <Skeleton className="h-[100px] sm:h-[150px] w-full mb-4" />
+      <Skeleton className="h-4 w-3/4 mb-2" />
+      <Skeleton className="h-4 w-1/2 mb-4" />
+      <Skeleton className="h-8 w-full" />
+    </CardContent>
+  </Card>
+);
+
+const MaterialCard = ({ material }) => (
+  <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
+    <div className="h-32 relative">
+      {material.header_image ? (
+        <Image 
+          src={material.header_image}
+          alt={material.name}
+          layout="fill"
+          objectFit="cover"
+          className="rounded-t-lg"
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
+          <span className="text-gray-400">No image</span>
+        </div>
+      )}
+    </div>
+    <div className="flex flex-col flex-grow p-4">
+      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
+      <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden max-h-20">
+        <MarkdownRenderer content={material.description.substring(0, 100) + '...'} />
+      </div>
+      <div className="flex justify-between items-center mt-auto">
+        <Link href={`/materials/${material.slug}`}>
+          <Button variant="outline" size="sm">View Details</Button>
+        </Link>
+        <Button variant="ghost" size="icon">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  </Card>
+);
+
+export default function DiscoverPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [materials, setMaterials] = useState([]);
+  const [filteredMaterials, setFilteredMaterials] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+  const fetchMaterials = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .select('id, name, description, header_image, slug, category')
+        .order('name');
+  
+      if (error) throw new Error(error.message);
+      
+      setMaterials(data);
+
+      const uniqueCategories = ['All', ...new Set(data.map(item => item.category))].sort();
+      setCategories(uniqueCategories);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to fetch data: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchMaterials();
+
+    const subscription = supabase
+      .channel('materials_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, fetchMaterials)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [fetchMaterials, supabase]);
+
+  useEffect(() => {
+    const filtered = materials.filter(material => 
+      (selectedCategory === 'All' || material.category === selectedCategory) &&
+      material.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredMaterials(filtered);
+  }, [materials, selectedCategory, searchTerm]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+  };
+
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category);
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Discover Materials</h1>
+      
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <form onSubmit={handleSearch} className="flex-grow flex items-center">
+          <Input 
+            type="text" 
+            placeholder="Search materials..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className="flex-grow"
+          />
+          <Button type="submit" className="ml-2">
+            <Search className="h-4 w-4" />
+          </Button>
+        </form>
+        
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="sm:hidden">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Categories</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col space-y-2 mt-4">
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  onClick={() => handleCategoryClick(category)}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  className="justify-start"
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      <div className="hidden sm:flex flex-wrap gap-2 mb-6">
+        {categories.map((category) => (
+          <Button
+            key={category}
+            onClick={() => handleCategoryClick(category)}
+            variant={selectedCategory === category ? "default" : "outline"}
+            size="sm"
+          >
+            {category}
+          </Button>
+        ))}
+      </div>
+
+      {error && <div className="text-red-500">Error: {error}</div>}
+      
+      <AnimatePresence>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredMaterials.map((material, index) => (
+            <motion.div 
+              key={material.id} 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <MaterialCard material={material} />
+            </motion.div>
+          ))}
+          {loading && Array(4).fill(0).map((_, index) => (
+            <motion.div 
+              key={`skeleton-${index}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <SkeletonCard />
+            </motion.div>
+          ))}
+        </div>
+      </AnimatePresence>
+    </div>
+  );
 }
 
 /./matlas-wiki/app/profile/page.js
@@ -963,6 +1659,31 @@ function ProfileSkeleton() {
   );
 }
 
+/./matlas-wiki/components/SearchBar.js
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+
+export default function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
+  const [query, setQuery] = useState('');
+  const router = useRouter();
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="">
+    </form>
+  );
+}
+
+
 /./matlas-wiki/components/MaterialCard.js
 'use client';
 
@@ -1090,424 +1811,4 @@ export function MaterialCard({ material }) {
   );
 }
 
-/./matlas-wiki/app/layout.js
-// app/layout.tsx
-'use client';
-
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { Manrope } from 'next/font/google';
-import { cn } from '@/lib/utils';
-import './globals.css';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Home, Search, Library, PlusCircle, User, LogOut, LogIn, Menu, Info, Sun, Moon, FolderOpen } from 'lucide-react';
-
-const font = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-main' });
-
-export default function RootLayout({ children }) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMenuVisible, setIsMenuVisible] = useState(true);
-  const supabase = createClientComponentClient();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    const handleChange = () => setIsDarkMode(mediaQuery.matches);
-    mediaQuery.addEventListener('change', handleChange);
-
-    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-
-    const handleScroll = () => {
-      const st = window.pageYOffset || document.documentElement.scrollTop;
-      setIsMenuVisible(st < lastScrollTop.current);
-      lastScrollTop.current = st <= 0 ? 0 : st;
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-      window.removeEventListener('scroll', handleScroll);
-      subscription.unsubscribe();
-    };
-  }, [supabase.auth]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setIsSidebarOpen(false);
-  };
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const NavLink = ({ href, icon: Icon, tooltip }) => {
-    const isActive = pathname === href;
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link 
-              href={href} 
-              className={cn(
-                "p-2 rounded-md transition-colors duration-200",
-                isActive 
-                  ? "bg-primary text-primary-foreground shadow-lg transform scale-105" 
-                  : "hover:bg-accent hover:text-accent-foreground"
-              )}
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <Icon className="h-6 w-6" />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  };
-
-  return (
-    <html lang="en" className={cn(font.variable, isDarkMode ? 'dark' : '')}>
-      <SessionContextProvider supabaseClient={supabase}>
-        <body className="flex h-screen bg-background text-foreground antialiased">
-          <aside className={`fixed inset-y-0 z-30 flex flex-col justify-between bg-card text-card-foreground w-16 md:w-20 transition-transform transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isMenuVisible ? '' : '-translate-y-full'}`}>
-            <div className="flex flex-col items-center mt-4 space-y-4">
-              <Link href="/" className="block mb-4">
-                <Image
-                  src="/logo-icon.svg"
-                  alt="MatLas Wiki Logo"
-                  width={32}
-                  height={32}
-                  className={isDarkMode ? "filter invert" : ""}
-                />
-              </Link>
-              <NavLink href="/" icon={Home} tooltip="Home" />
-              <NavLink href="/discover" icon={Search} tooltip="Discover" />
-              <NavLink href="/materials" icon={Library} tooltip="Materials" />
-              {user && <NavLink href="/projects" icon={FolderOpen} tooltip="Projects" />}
-              {user && <NavLink href="/materials/new/edit" icon={PlusCircle} tooltip="Add Material" />}
-            </div>
-            <div className="flex flex-col items-center mb-4 space-y-4">
-              {user && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link 
-                        href="/profile" 
-                        className="p-2 rounded-md transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => setIsSidebarOpen(false)}
-                      >
-                        <Image
-                          src={user.user_metadata.avatar_url || "/default-avatar.png"}
-                          alt="User Avatar"
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Profile</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-              <NavLink href="/info" icon={Info} tooltip="Information" />
-              <Button onClick={toggleDarkMode} variant="ghost" size="icon">
-                {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-              </Button>
-              {user ? (
-                <Button onClick={handleSignOut} variant="ghost" size="icon">
-                  <LogOut className="h-6 w-6" />
-                </Button>
-              ) : (
-                <Link href="/auth">
-                  <Button variant="ghost" size="icon">
-                    <LogIn className="h-6 w-6" />
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </aside>
-          <div className="flex-grow flex flex-col ml-0 md:ml-16 md:ml-20">
-            <header className="bg-card text-card-foreground p-4 md:hidden">
-              <Button onClick={toggleSidebar} variant="ghost">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </header>
-            <main className="flex-grow overflow-auto">
-              {children}
-            </main>
-          </div>
-          {isSidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-              onClick={() => setIsSidebarOpen(false)}
-            />
-          )}
-        </body>
-      </SessionContextProvider>
-    </html>
-  );
-}
-
-
-/./matlas-wiki/app/page.js
-'use client';
-
-import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ChevronDown, Search } from 'lucide-react';
-import { motion } from 'framer-motion';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
-
-const MaterialCard = ({ material }) => (
-  <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
-    <div className="h-40 relative">
-      {material.header_image ? (
-        <Image 
-          src={material.header_image}
-          alt={material.name}
-          layout="fill"
-          objectFit="cover"
-          className="rounded-t-lg"
-        />
-      ) : (
-        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-          <span className="text-gray-400">No image</span>
-        </div>
-      )}
-    </div>
-    <div className="flex flex-col flex-grow p-4">
-      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
-      <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
-        <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
-      </div>
-      <div className="flex justify-between items-center mt-auto">
-        <Button variant="outline" size="sm" asChild>
-          <a href={`/materials/${material.slug}`}>View Details</a>
-        </Button>
-      </div>
-    </div>
-  </Card>
-);
-
-export default function HomePage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [randomMaterials, setRandomMaterials] = useState([]);
-  const [categories, setCategories] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const supabase = createClientComponentClient();
-      setLoading(true);
-      setError(null);
-
-      try {
-        const { data: materialsData, error: materialsError } = await supabase
-          .from('materials')
-          .select('id, name, description, header_image, slug, category, subcategory')
-          .limit(3);
-
-        if (materialsError) throw new Error(materialsError.message);
-        setRandomMaterials(materialsData);
-
-        const { data: allMaterials, error: allMaterialsError } = await supabase
-          .from('materials')
-          .select('category, subcategory');
-
-        if (allMaterialsError) throw new Error(allMaterialsError.message);
-
-        const categoriesObj = allMaterials.reduce((acc, material) => {
-          if (material.category) {
-            if (!acc[material.category]) {
-              acc[material.category] = new Set();
-            }
-            if (material.subcategory) {
-              acc[material.category].add(material.subcategory);
-            }
-          }
-          return acc;
-        }, {});
-
-        Object.keys(categoriesObj).forEach(category => {
-          categoriesObj[category] = Array.from(categoriesObj[category]);
-        });
-
-        setCategories(categoriesObj);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to fetch data: ' + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    router.push(`/materials?search=${encodeURIComponent(searchTerm)}`);
-  };
-
-  const handleCategoryClick = (category) => {
-    router.push(`/materials?category=${encodeURIComponent(category)}`);
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      transition={{ duration: 0.5 }}
-      className="container mx-auto px-4 py-8"
-    >
-      <div className="flex flex-col items-center mb-12">
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Image src="/matlas-logo.png" alt="MatLas Wiki logo" width={200} height={200} className="mb-8" />
-        </motion.div>
-        <motion.h1 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-4xl font-bold text-primary mb-6"
-        >
-          MatLas Wiki
-        </motion.h1>
-        <motion.p 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="text-xl mb-6"
-        >
-          The Free Material Encyclopedia
-        </motion.p>
-        <motion.form 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          onSubmit={handleSearch} 
-          className="w-full max-w-2xl mb-8"
-        >
-          <div className="relative">
-            <Search 
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
-              onClick={handleSearch}
-            />
-            <Input 
-              type="text" 
-              placeholder="Search materials..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              className="pl-10 pr-4"
-            />
-          </div>
-        </motion.form>
-      </div>
-
-      <motion.h2 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.5 }}
-        className="text-2xl font-bold mb-4"
-      >
-        Random Materials
-      </motion.h2>
-      {error && <div className="text-red-500">Error: {error}</div>}
-      {!loading && !error && (
-        <motion.div 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2"
-        >
-          {randomMaterials.map((material, index) => (
-            <motion.div
-              key={material.id}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1 + (index * 0.1), duration: 0.5 }}
-            >
-              <MaterialCard material={material} />
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-
-      <motion.h2 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
-        className="text-2xl font-bold mb-4"
-      >
-        Material Categories
-      </motion.h2>
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.4, duration: 0.5 }}
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"
-      >
-        {Object.entries(categories).map(([category, subcategories], index) => (
-          <motion.div
-            key={category}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1.4 + (index * 0.05), duration: 0.5 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="p-3">
-                <CardTitle className="text-lg">{category}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 pt-0">
-                <p className="text-sm text-muted-foreground mb-2">{subcategories.length} subcategories</p>
-                <Button variant="outline" size="sm" onClick={() => handleCategoryClick(category)} className="w-full">
-                  Explore
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.6, duration: 0.5 }}
-        className="text-center"
-      >
-        <Button variant="outline" className="text-primary">
-          Read MatLas Wiki in your language <ChevronDown className="ml-2 h-4 w-4" />
-        </Button>
-      </motion.div>
-    </motion.div>
-  );
-}
-
+/./matlas-wiki/components/Flters.js

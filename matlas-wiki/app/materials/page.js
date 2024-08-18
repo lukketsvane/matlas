@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import dynamic from 'next/dynamic';
 
 const MaterialCard = ({ material }) => (
   <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
@@ -37,7 +39,7 @@ const MaterialCard = ({ material }) => (
         <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
       </div>
       <div className="flex justify-between items-center mt-auto">
-        <Link href={`/materials/${material.slug}`}>
+        <Link href={`/materials/category/${material.category}/${material.subcategory.replace(/ /g, '-')}/${material.slug}`}>
           <Button variant="outline" size="sm">View Details</Button>
         </Link>
         <Button variant="ghost" size="icon">
@@ -48,15 +50,16 @@ const MaterialCard = ({ material }) => (
   </Card>
 );
 
-export default function MaterialsPage() {
+const MaterialsPageContent = () => {
+  const searchParams = useSearchParams();
   const [materials, setMaterials] = useState([]);
   const [filteredMaterials, setFilteredMaterials] = useState([]);
   const [categories, setCategories] = useState({});
   const [view, setView] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [advancedSearch, setAdvancedSearch] = useState({ inTitle: true, inDescription: false, inProperties: false });
   const supabase = createClientComponentClient();
@@ -119,6 +122,7 @@ export default function MaterialsPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    // You can add additional logic here if needed
   };
 
   return (
@@ -179,7 +183,7 @@ export default function MaterialsPage() {
         <div className="w-full md:w-3/4">
           <AnimatePresence>
             {loading ? (
-              <div>Loading...</div>
+              <div></div>
             ) : view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredMaterials.map((material) => (
@@ -208,7 +212,9 @@ export default function MaterialsPage() {
                         <td className="p-2 hidden sm:table-cell">{material.category}</td>
                         <td className="p-2 hidden sm:table-cell">{material.subcategory}</td>
                         <td className="p-2">
-                          <Link href={`/materials/${material.slug}`}><Button size="sm" variant="outline">View</Button></Link>
+                          <Link href={`/materials/category/${material.category}/${material.subcategory.replace(/ /g, '-')}/${material.slug}`}>
+                            <Button size="sm" variant="outline">View</Button>
+                          </Link>
                         </td>
                       </motion.tr>
                     ))}
@@ -241,8 +247,21 @@ export default function MaterialsPage() {
       </div>
     </div>
   );
-}
+};
 
 function truncateDescription(description, maxLength) {
   return description.length <= maxLength ? description : description.substr(0, maxLength) + '...';
+}
+
+const MaterialsPage = dynamic(() => Promise.resolve(MaterialsPageContent), {
+  ssr: false,
+  loading: () => <p></p>,
+});
+
+export default function MaterialsPageWrapper() {
+  return (
+    <Suspense fallback={<div></div>}>
+      <MaterialsPage />
+    </Suspense>
+  );
 }

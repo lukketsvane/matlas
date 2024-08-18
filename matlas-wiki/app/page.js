@@ -4,43 +4,127 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, Shuffle, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSession } from '@supabase/auth-helpers-react';
 
-const MaterialCard = ({ material }) => (
-  <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
-    <div className="h-40 relative">
-      {material.header_image ? (
-        <Image 
-          src={material.header_image}
-          alt={material.name}
-          layout="fill"
-          objectFit="cover"
-          className="rounded-t-lg"
-        />
-      ) : (
-        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-          <span className="text-gray-400">No image</span>
+const MaterialCard = ({ material }) => {
+  const [isAddToProjectOpen, setIsAddToProjectOpen] = useState(false);
+  const [userProjects, setUserProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const session = useSession();
+  const supabase = createClientComponentClient();
+
+  const stripHtmlTags = (html) => {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
+  const fetchUserProjects = async () => {
+    if (!session) return;
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+      setUserProjects(data);
+    } catch (error) {
+      console.error('Error fetching user projects:', error);
+    }
+  };
+
+  const handleAddToProject = async () => {
+    setIsAddToProjectOpen(true);
+    await fetchUserProjects();
+  };
+
+  const saveMaterialToProject = async () => {
+    if (!selectedProject) return;
+    try {
+      const { error } = await supabase
+        .from('project_materials')
+        .insert({ 
+          project_id: selectedProject, 
+          material_id: material.id 
+        });
+
+      if (error) throw error;
+      setIsAddToProjectOpen(false);
+      alert('Material added to project successfully!');
+    } catch (error) {
+      console.error('Error saving material to project:', error);
+      alert('Failed to add material to project');
+    }
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow flex flex-col h-full">
+      <div className="h-40 relative">
+        {material.header_image ? (
+          <Image 
+            src={material.header_image}
+            alt={material.name}
+            layout="fill"
+            objectFit="cover"
+            className="rounded-t-lg"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
+            <span className="text-gray-400">No image</span>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col flex-grow p-4">
+        <h3 className="text-lg font-bold mb-2">{material.name}</h3>
+        <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
+          <MarkdownRenderer content={stripHtmlTags(material.description).substring(0, 150) + '...'} />
         </div>
-      )}
-    </div>
-    <div className="flex flex-col flex-grow p-4">
-      <h3 className="text-lg font-bold mb-2">{material.name}</h3>
-      <div className="text-sm text-muted-foreground mb-4 flex-grow overflow-hidden">
-        <MarkdownRenderer content={material.description.substring(0, 150) + '...'} />
+        <div className="flex justify-between items-center mt-auto">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/materials/category/${material.category}/${material.subcategory}/${material.slug}`}>
+              View Details
+            </Link>
+          </Button>
+          {session && (
+            <Dialog open={isAddToProjectOpen} onOpenChange={setIsAddToProjectOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={handleAddToProject}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add to Project</DialogTitle>
+                </DialogHeader>
+                <Select value={selectedProject} onValueChange={setSelectedProject}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={saveMaterialToProject}>Save to Project</Button>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
-      <div className="flex justify-between items-center mt-auto">
-        <Button variant="outline" size="sm" asChild>
-          <a href={`/materials/${material.slug}`}>View Details</a>
-        </Button>
-      </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,6 +192,25 @@ export default function HomePage() {
     router.push(`/materials?category=${encodeURIComponent(category)}`);
   };
 
+  const handleFeelingLucky = async () => {
+    const supabase = createClientComponentClient();
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .select('slug, category, subcategory')
+        .limit(1)
+        .order('RANDOM()');
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const material = data[0];
+        router.push(`/materials/category/${material.category}/${material.subcategory}/${material.slug}`);
+      }
+    } catch (err) {
+      console.error('Error fetching random material:', err);
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -144,7 +247,7 @@ export default function HomePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
           onSubmit={handleSearch} 
-          className="w-full max-w-2xl mb-8"
+          className="w-full max-w-2xl mb-4"
         >
           <div className="relative">
             <Search 
@@ -160,12 +263,22 @@ export default function HomePage() {
             />
           </div>
         </motion.form>
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+        >
+          <Button onClick={handleFeelingLucky} variant="outline" className="flex items-center">
+            <Shuffle className="mr-2 h-4 w-4" />
+            I'm Feeling Lucky
+          </Button>
+        </motion.div>
       </div>
 
       <motion.h2 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.5 }}
+        transition={{ delay: 1.0, duration: 0.5 }}
         className="text-2xl font-bold mb-4"
       >
         Random Materials
@@ -175,15 +288,15 @@ export default function HomePage() {
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2"
+          transition={{ delay: 1.2, duration: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
         >
           {randomMaterials.map((material, index) => (
             <motion.div
               key={material.id}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1 + (index * 0.1), duration: 0.5 }}
+              transition={{ delay: 1.2 + (index * 0.1), duration: 0.5 }}
             >
               <MaterialCard material={material} />
             </motion.div>
@@ -194,7 +307,7 @@ export default function HomePage() {
       <motion.h2 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
+        transition={{ delay: 1.4, duration: 0.5 }}
         className="text-2xl font-bold mb-4"
       >
         Material Categories
@@ -202,7 +315,7 @@ export default function HomePage() {
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.4, duration: 0.5 }}
+        transition={{ delay: 1.6, duration: 0.5 }}
         className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"
       >
         {Object.entries(categories).map(([category, subcategories], index) => (
@@ -210,7 +323,7 @@ export default function HomePage() {
             key={category}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1.4 + (index * 0.05), duration: 0.5 }}
+            transition={{ delay: 1.6 + (index * 0.05), duration: 0.5 }}
           >
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="p-3">
@@ -230,7 +343,7 @@ export default function HomePage() {
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1.6, duration: 0.5 }}
+        transition={{ delay: 1.8, duration: 0.5 }}
         className="text-center"
       >
         <Button variant="outline" className="text-primary">

@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,25 +14,17 @@ import MaterialTabs from '@/components/MaterialTabs';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 export default function MaterialPage({ params }) {
-  const { slug } = params;
+  const { categorySlug, subcategorySlug, materialSlug } = params;
   const [material, setMaterial] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const session = useSession();
   const supabase = createClientComponentClient();
-  const [isSearchVisible, setIsSearchVisible] = useState(true);
-  const lastScrollTop = useRef(0);
+  const router = useRouter();
 
   useEffect(() => {
     fetchMaterial();
-    const handleScroll = () => {
-      const st = window.pageYOffset || document.documentElement.scrollTop;
-      setIsSearchVisible(st <= lastScrollTop.current || st <= 100);
-      lastScrollTop.current = st <= 0 ? 0 : st;
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [slug]);
+  }, [categorySlug, subcategorySlug, materialSlug]);
 
   async function fetchMaterial() {
     try {
@@ -39,7 +32,9 @@ export default function MaterialPage({ params }) {
       const { data, error } = await supabase
         .from('materials')
         .select('*')
-        .eq('slug', slug)
+        .eq('slug', materialSlug)
+        .eq('category', categorySlug)
+        .eq('subcategory', subcategorySlug.replace(/-/g, ' '))
         .single();
       if (error) throw error;
       setMaterial(data);
@@ -57,7 +52,7 @@ export default function MaterialPage({ params }) {
 
   return (
     <div className="max-w-screen-xl mx-auto">
-      <SearchBar isVisible={isSearchVisible} />
+      <SearchBar />
       {material.header_image && (
         <div className="w-full h-64 sm:h-96 relative">
           <Image 
@@ -76,7 +71,7 @@ export default function MaterialPage({ params }) {
           <div className="flex items-center">
             {session && (
               <>
-                <Link href={`/materials/${material.slug}/edit`}>
+                <Link href={`/materials/category/${categorySlug}/${subcategorySlug}/${materialSlug}/edit`}>
                   <Button variant="outline" size="icon" className="mr-2">
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -86,6 +81,10 @@ export default function MaterialPage({ params }) {
             )}
           </div>
         </div>
+        <p className="mb-4">
+          Category: <Link href={`/materials/category/${categorySlug}`} className="text-blue-500 hover:underline">{categorySlug}</Link> &gt; 
+          <Link href={`/materials/category/${categorySlug}/${subcategorySlug}`} className="text-blue-500 hover:underline">{subcategorySlug.replace(/-/g, ' ')}</Link>
+        </p>
         <MarkdownRenderer content={material.description} />
         <MaterialTabs material={material} />
       </div>
